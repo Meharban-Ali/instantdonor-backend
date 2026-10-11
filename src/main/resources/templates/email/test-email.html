@@ -1,0 +1,132 @@
+<!-- ✅ NEW FILE — templates/email/test-email.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta http-equiv="Content-Type"
+          content="text/html; charset=UTF-8"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0"/>
+    <title>Test Email — Blood Donor Network</title>
+    <style type="text/css">
+        body { margin: 0; padding: 0;
+            background-color: #f3f4f6;
+            font-family: 'Segoe UI', Arial, sans-serif; }
+        .container { max-width: 600px; margin: 20px auto;
+            background: #ffffff; border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.10); }
+        .header { background-color: #374151; padding: 32px 24px;
+            text-align: center; }
+        .header-title { color: #ffffff; font-size: 22px;
+            font-weight: 700; margin: 0 0 8px 0; }
+        .header-sub { color: rgba(255,255,255,0.85);
+            font-size: 13px; margin: 0; }
+        .body { padding: 32px 24px; }
+        .info-card { background: #f9fafb; border: 1px solid #e5e7eb;
+            border-radius: 8px; margin-bottom: 20px;
+            overflow: hidden; }
+        .info-table { width: 100%; border-collapse: collapse; }
+        .info-tr { border-bottom: 1px solid #e5e7eb; }
+        .info-tr:last-child { border-bottom: none; }
+        .label-td { padding: 10px 16px; color: #6b7280;
+            font-size: 13px; font-weight: 600;
+            width: 40%; background: #f9fafb; }
+        .value-td { padding: 10px 16px; color: #111827;
+            font-size: 13px; text-align: right; }
+        .success-badge { display: inline-block;
+            background: #d1fae5; color: #065f46;
+            padding: 4px 12px; border-radius: 12px;
+            font-size: 12px; font-weight: 700; }
+        .footer { background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            padding: 20px; text-align: center;
+            color: #9ca3af; font-size: 12px; }
+    </style>
+</head>
+<body>
+<div style="background-color:#f3f4f6; padding: 20px 0;">
+    <div class="container">
+
+        <div class="header">
+            <h1 class="header-title">[TEST] Email Delivery Test</h1>
+            <p class="header-sub">
+                Blood Donor Network — Email System Verification
+            </p>
+        </div>
+
+        <div class="body">
+            <p style="color:#374151; font-size:15px; margin:0 0 8px 0;">
+                This is a test email to verify that the
+                Blood Donor Network email system is working correctly.
+            </p>
+            <p style="color:#6b7280; font-size:13px;
+                  margin:0 0 24px 0; line-height:1.6;">
+                If you received this email, the mail configuration
+                is working as expected.
+            </p>
+
+            <div class="info-card">
+                <table class="info-table"
+                       cellpadding="0" cellspacing="0">
+                    <tr class="info-tr">
+                        <td class="label-td">Recipient</td>
+                        <td class="value-td"
+                            th:text="${recipientEmail}">
+                            test@example.com
+                        </td>
+                    </tr>
+                    <tr class="info-tr">
+                        <td class="label-td">Sent At</td>
+                        <td class="value-td"
+                            th:text="${testTime}">
+                            27 Mar 2024, 10:00:00
+                        </td>
+                    </tr>
+                    <tr class="info-tr">
+                        <td class="label-td">Environment</td>
+                        <td class="value-td"
+                            th:text="${environment}">
+                            development
+                        </td>
+                    </tr>
+                    <tr class="info-tr">
+                        <td class="label-td">Triggered By</td>
+                        <td class="value-td"
+                            th:text="${sentBy}">
+                            admin@blooddonor.com
+                        </td>
+                    </tr>
+                    <tr class="info-tr">
+                        <td class="label-td">Status</td>
+                        <td class="value-td">
+                        <span class="success-badge">
+                            DELIVERED
+                        </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <p style="color:#9ca3af; font-size:12px;
+                  line-height:1.6; margin:0;">
+                This email was sent from the admin panel
+                for testing purposes only.
+                No action is required.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p style="margin:0 0 4px 0; font-weight:600;
+                  color:#374151;">
+                Blood Donor Network
+            </p>
+            <p style="margin:0; font-size:11px;">
+                This is an automated test email.
+                Do not reply.
+            </p>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

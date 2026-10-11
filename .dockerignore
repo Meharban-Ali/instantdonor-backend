@@ -1,0 +1,14 @@
+target/
+*.class
+.mvn/
+.idea/
+.settings/
+.project
+.classpath
+*.iml
+*.log
+logs/
+.env
+.env.example
+docker-compose*
+Dockerfile

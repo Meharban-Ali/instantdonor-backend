@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<!--
+    requester-donor-found.html
+    ════════════════════════════════════════════════════════
+    Template: Donor Found Notification — Requester ke liye
+    Engine:   Thymeleaf 3.x
+
+    ✅ Bug Fix 6: S principle — donor aur requester alag templates!
+
+    Variables:
+        donorName       - Donor ka naam
+        patientName     - Patient ka naam
+        bloodGroup      - Blood group display
+        hospitalName    - Hospital naam
+        requestId       - Request ID
+        contactNote     - "Contact through app" message
+        appDeepLink     - App CTA link
+        unsubscribeUrl  - CAN-SPAM
+    ════════════════════════════════════════════════════════
+-->
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <!-- ✅ Complete meta tags -->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no"/>
+    <meta name="color-scheme" content="light"/>
+    <title>Donor Found — Blood Donor Network</title>
+
+    <style type="text/css">
+        body, table, td, a {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust:     100%;
+        }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        body {
+            margin:           0;
+            padding:          0;
+            background-color: #f3f4f6;
+            font-family:      'Segoe UI', Arial, Helvetica, sans-serif;
+        }
+        .email-wrapper    { width: 100%; background-color: #f3f4f6; padding: 20px 0; }
+        .email-container  {
+            max-width:        600px;
+            margin:           0 auto;
+            background-color: #ffffff;
+            border-radius:    12px;
+            overflow:         hidden;
+            box-shadow:       0 4px 20px rgba(0,0,0,0.10);
+        }
+
+        /* Header — Blue theme (different from donor green) */
+        .header {
+            background-color: #2563eb;
+            background-image: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            padding:          36px 24px;
+            text-align:       center;
+        }
+        .header-icon      { font-size: 48px; margin-bottom: 12px; line-height: 1; }
+        .header-title     { color: #ffffff; font-size: 24px; font-weight: 700; margin: 0 0 8px 0; }
+        .header-subtitle  { color: rgba(255,255,255,0.90); font-size: 14px; margin: 0; }
+
+        /* Body */
+        .email-body       { padding: 32px 24px; }
+        .greeting         { font-size: 16px; color: #374151; margin: 0 0 16px 0; }
+        .intro-text       { font-size: 15px; color: #4b5563; line-height: 1.7; margin: 0 0 24px 0; }
+
+        /* Info card — table based */
+        .info-card {
+            background-color: #eff6ff;
+            border:           1px solid #bfdbfe;
+            border-radius:    8px;
+            margin-bottom:    24px;
+            overflow:         hidden;
+        }
+        .info-table       { width: 100%; border-collapse: collapse; }
+        .info-row-tr      { border-bottom: 1px solid #dbeafe; }
+        .info-row-tr:last-child { border-bottom: none; }
+        .info-label-td    {
+            padding:          10px 16px;
+            color:            #6b7280;
+            font-size:        13px;
+            font-weight:      600;
+            width:            40%;
+            vertical-align:   middle;
+            background-color: #eff6ff;
+        }
+        .info-value-td    {
+            padding:          10px 16px;
+            color:            #111827;
+            font-size:        13px;
+            font-weight:      500;
+            text-align:       right;
+            vertical-align:   middle;
+        }
+
+        /* Donor highlight card */
+        .donor-card {
+            background-color: #f0fdf4;
+            border:           1px solid #bbf7d0;
+            border-left:      4px solid #059669;
+            border-radius:    8px;
+            padding:          16px 20px;
+            margin-bottom:    24px;
+        }
+        .donor-card-title { color: #065f46; font-size: 13px; font-weight: 600; margin: 0 0 6px 0; }
+        .donor-name-text  { color: #047857; font-size: 18px; font-weight: 700; margin: 0; }
+
+        /* Privacy note */
+        .privacy-note {
+            background-color: #fefce8;
+            border:           1px solid #fef08a;
+            border-radius:    8px;
+            padding:          12px 16px;
+            margin-bottom:    24px;
+        }
+        .privacy-text     { color: #713f12; font-size: 13px; line-height: 1.6; margin: 0; }
+
+        /* CTA */
+        .cta-wrapper      { text-align: center; margin: 24px 0; }
+        .cta-btn {
+            display:          inline-block;
+            background-color: #2563eb;
+            color:            #ffffff;
+            text-decoration:  none;
+            padding:          14px 32px;
+            border-radius:    8px;
+            font-size:        16px;
+            font-weight:      700;
+        }
+
+        /* Footer */
+        .email-footer     {
+            background-color: #f9fafb;
+            border-top:       1px solid #e5e7eb;
+            padding:          24px;
+            text-align:       center;
+        }
+        .footer-brand     { color: #374151; font-size: 14px; font-weight: 600; margin: 0 0 8px 0; }
+        .footer-meta      { color: #9ca3af; font-size: 12px; margin: 4px 0; }
+        .unsubscribe-link { color: #9ca3af; font-size: 11px; text-decoration: underline; }
+
+        @media only screen and (max-width: 600px) {
+            .email-container { border-radius: 0 !important; }
+            .email-body      { padding: 20px 16px !important; }
+            .header          { padding: 24px 16px !important; }
+            .cta-btn         { display: block !important; padding: 12px 20px !important; }
+        }
+    </style>
+</head>
+<body>
+<div class="email-wrapper">
+    <div class="email-container">
+
+        <!-- Header — No emoji, HTML entity -->
+        <div class="header">
+            <div class="header-icon" aria-hidden="true">&#10084;</div>
+            <h1 class="header-title">A Donor Has Been Found!</h1>
+            <p class="header-subtitle">
+                Your blood request has received a response
+            </p>
+        </div>
+
+        <div class="email-body">
+
+            <p class="greeting">Dear Requester,</p>
+
+            <p class="intro-text">
+                Great news! A registered donor has accepted your blood
+                request. Please contact the donor through the app and
+                coordinate with the hospital immediately.
+            </p>
+
+            <!-- Donor name highlight -->
+            <div class="donor-card">
+                <p class="donor-card-title">DONOR WHO ACCEPTED:</p>
+                <p class="donor-name-text"
+                   th:text="${donorName}">Donor Name</p>
+            </div>
+
+            <!-- Request details — table layout -->
+            <div class="info-card">
+                <table class="info-table" cellpadding="0" cellspacing="0">
+
+                    <tr class="info-row-tr">
+                        <td class="info-label-td">Patient Name</td>
+                        <td class="info-value-td"
+                            th:text="${patientName}">Patient</td>
+                    </tr>
+
+                    <tr class="info-row-tr">
+                        <td class="info-label-td">Blood Group</td>
+                        <td class="info-value-td"
+                            style="color:#dc2626; font-weight:700;"
+                            th:text="${bloodGroup}">O+</td>
+                    </tr>
+
+                    <tr class="info-row-tr">
+                        <td class="info-label-td">Hospital</td>
+                        <td class="info-value-td"
+                            th:text="${hospitalName}">Hospital</td>
+                    </tr>
+
+                    <tr class="info-row-tr">
+                        <td class="info-label-td">Donor Contact</td>
+                        <!--
+                        ✅ Bug Fix 8: Privacy — full phone nahi!
+                        contactNote = "Contact through app"
+                        Service: "Please contact donor through the app"
+                        -->
+                        <td class="info-value-td"
+                            th:text="${contactNote}">Contact via App</td>
+                    </tr>
+
+                    <tr class="info-row-tr">
+                        <td class="info-label-td">Request ID</td>
+                        <td class="info-value-td"
+                            th:text="'#' + ${requestId}">#12345</td>
+                    </tr>
+
+                </table>
+            </div>
+
+            <!-- Privacy note — donor phone nahi diya -->
+            <div class="privacy-note">
+                <p class="privacy-text">
+                    <strong>Privacy Notice:</strong>
+                    For the safety of all parties, donor contact details
+                    are shared only through the secure in-app messaging
+                    system. Please use the app to communicate with
+                    your donor.
+                </p>
+            </div>
+
+            <!-- CTA -->
+            <div class="cta-wrapper">
+                <!--[if mso]>
+                <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml"
+                             xmlns:w="urn:schemas-microsoft-com:office:word"
+                             th:href="${appDeepLink}"
+                             style="height:48px;v-text-anchor:middle;width:260px;"
+                             arcsize="10%" strokecolor="#2563eb" fillcolor="#2563eb">
+                    <w:anchorlock/>
+                    <center style="color:#ffffff;font-family:sans-serif;
+                               font-size:16px;font-weight:bold;">
+                        Contact Donor in App
+                    </center>
+                </v:roundrect>
+                <![endif]-->
+                <!--[if !mso]><!-->
+                <a class="cta-btn"
+                   th:href="${appDeepLink}"
+                   href="https://blooddonor.app">
+                    Contact Donor in App
+                </a>
+                <!--<![endif]-->
+            </div>
+
+        </div>
+
+        <!-- Footer — CAN-SPAM compliant -->
+        <div class="email-footer">
+            <p class="footer-brand">Blood Donor Network</p>
+            <p class="footer-meta">Saving Lives Together</p>
+            <p class="footer-meta">
+                Request ID: <span th:text="'#' + ${requestId}">#12345</span>
+            </p>
+            <p class="footer-meta" style="margin-top: 16px;">
+                You received this because you submitted a blood request.
+                <br/>
+                <a class="unsubscribe-link"
+                   th:href="${unsubscribeUrl}"
+                   href="https://blooddonor.app/unsubscribe">
+                    Manage notification preferences
+                </a>
+            </p>
+            <p class="footer-meta" style="font-size: 11px; margin-top: 8px;">
+                Blood Donor Network | India
+                <br/>
+                This is an automated notification. Do not reply to this email.
+            </p>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

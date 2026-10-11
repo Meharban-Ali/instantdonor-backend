@@ -1,0 +1,203 @@
+package com.blood_donor.security;
+
+import jakarta.annotation.Nonnull;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * ═══════════════════════════════════════════════════════════
+ * RATE LIMITING FILTER
+ * ═══════════════════════════════════════════════════════════
+ *
+ * Implements a lightweight IP-based Token Bucket rate limiting
+ * algorithm for auth/security sensitive endpoints (/api/auth/login,
+ * /api/auth/register, /api/auth/forgot-password, /api/auth/reset-password).
+ * Utilizes Redis for distributed deployments, with a transparent
+ * local ConcurrentHashMap fallback.
+ */
+@Slf4j
+@Component
+public class RateLimitingFilter extends OncePerRequestFilter {
+
+    @Value("${rate-limiting.enabled:true}")
+    private boolean enabled;
+
+    @Value("${rate-limiting.capacity:100}")
+    private long capacity;
+
+    @Value("${rate-limiting.refill-interval:60}")
+    private long refillIntervalSeconds;
+
+    @Autowired(required = false)
+    private RedisTemplate<String, Object> redisTemplate;
+
+    private final ConcurrentHashMap<String, TokenBucket> buckets = new ConcurrentHashMap<>();
+
+    @Override
+    protected void doFilterInternal(
+            @Nonnull HttpServletRequest request,
+            @Nonnull HttpServletResponse response,
+            @Nonnull FilterChain filterChain
+    ) throws ServletException, IOException {
+
+        log.debug("RateLimitingFilter: uri={}, enabled={}, capacity={}, refillInterval={}",
+                request.getRequestURI(), enabled, capacity, refillIntervalSeconds);
+
+        if (!enabled) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String uri = request.getRequestURI().substring(request.getContextPath().length());
+
+        // We only rate limit specific authentication endpoints
+        boolean isAuthEndpoint = uri.equals("api/auth/login") || uri.equals("/api/auth/login") ||
+                uri.equals("api/auth/register") || uri.equals("/api/auth/register") ||
+                uri.equals("api/auth/forgot-password") || uri.equals("/api/auth/forgot-password") ||
+                uri.equals("api/auth/reset-password") || uri.equals("/api/auth/reset-password");
+
+        if (isAuthEndpoint) {
+            String ip = getClientIp(request);
+            boolean allowed;
+
+            if (redisTemplate != null) {
+                try {
+                    allowed = tryConsumeRedis(ip);
+                } catch (Exception e) {
+                    log.warn("Redis rate limiting failed, falling back to local memory rate limiting. IP: {}. Error: {}", ip, e.getMessage());
+                    allowed = tryConsumeLocal(ip);
+                }
+            } else {
+                allowed = tryConsumeLocal(ip);
+            }
+
+            if (!allowed) {
+                log.warn("Rate limit exceeded for IP: {} on URI: {}", ip, uri);
+                response.setStatus(429); // HTTP 429 Too Many Requests
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\":\"Too many requests. Please try again later.\"}");
+                return;
+            }
+        }
+
+        filterChain.doFilter(request, response);
+    }
+
+    private boolean tryConsumeLocal(String ip) {
+        double refillRatePerMs = (double) capacity / (refillIntervalSeconds * 1000.0);
+        TokenBucket bucket = buckets.computeIfAbsent(ip, k -> new TokenBucket(capacity));
+        return bucket.tryConsume(refillRatePerMs);
+    }
+
+    private synchronized boolean tryConsumeRedis(String ip) {
+        String key = "rate:limit:auth:" + ip;
+        long now = System.currentTimeMillis();
+        double refillRatePerMs = (double) capacity / (refillIntervalSeconds * 1000.0);
+
+        Map<Object, Object> data = redisTemplate.opsForHash().entries(key);
+        double tokens;
+        long lastRefillTime;
+
+        if (data == null || data.isEmpty()) {
+            tokens = capacity;
+            lastRefillTime = now;
+        } else {
+            Object tokensObj = data.get("tokens");
+            Object lastRefillObj = data.get("lastRefillTime");
+
+            if (tokensObj == null || lastRefillObj == null) {
+                tokens = capacity;
+                lastRefillTime = now;
+            } else {
+                try {
+                    tokens = Double.parseDouble(tokensObj.toString());
+                    lastRefillTime = Long.parseLong(lastRefillObj.toString());
+                } catch (NumberFormatException e) {
+                    tokens = capacity;
+                    lastRefillTime = now;
+                }
+            }
+        }
+
+        // Refill tokens
+        long timePassed = now - lastRefillTime;
+        if (timePassed > 0) {
+            tokens = Math.min(capacity, tokens + (timePassed * refillRatePerMs));
+            lastRefillTime = now;
+        }
+
+        // Consume token
+        if (tokens >= 1.0) {
+            tokens -= 1.0;
+
+            Map<String, Object> update = new HashMap<>();
+            update.put("tokens", tokens);
+            update.put("lastRefillTime", lastRefillTime);
+
+            redisTemplate.opsForHash().putAll(key, update);
+            redisTemplate.expire(key, refillIntervalSeconds, TimeUnit.SECONDS);
+            return true;
+        }
+
+        // Still update refilled tokens in Redis even if consumer request fails (so refill progress isn't lost)
+        Map<String, Object> update = new HashMap<>();
+        update.put("tokens", tokens);
+        update.put("lastRefillTime", lastRefillTime);
+        redisTemplate.opsForHash().putAll(key, update);
+        redisTemplate.expire(key, refillIntervalSeconds, TimeUnit.SECONDS);
+
+        return false;
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader == null || xfHeader.isEmpty()) {
+            return request.getRemoteAddr();
+        }
+        return xfHeader.split(",")[0].trim();
+    }
+
+    private static class TokenBucket {
+        private final long capacity;
+        private double tokens;
+        private long lastRefillTime;
+
+        public TokenBucket(long capacity) {
+            this.capacity = capacity;
+            this.tokens = capacity;
+            this.lastRefillTime = System.currentTimeMillis();
+        }
+
+        public synchronized boolean tryConsume(double refillRatePerMs) {
+            refill(refillRatePerMs);
+            if (tokens >= 1.0) {
+                tokens -= 1.0;
+                return true;
+            }
+            return false;
+        }
+
+        private void refill(double refillRatePerMs) {
+            long now = System.currentTimeMillis();
+            long timePassed = now - lastRefillTime;
+            if (timePassed > 0) {
+                tokens = Math.min(capacity, tokens + (timePassed * refillRatePerMs));
+                lastRefillTime = now;
+            }
+        }
+    }
+}

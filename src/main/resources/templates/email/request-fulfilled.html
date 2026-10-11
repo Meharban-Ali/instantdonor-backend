@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<!--
+    request-fulfilled.html
+    ════════════════════════════════════════════════════════
+    Template: Blood Request Fulfilled — Requester ke liye
+    Engine:   Thymeleaf 3.x
+    Version:  2.0.0
+
+    Variables (all required — NotificationService se):
+        patientName     - Patient ka naam
+        bloodGroup      - "A+", "B-" etc.
+        hospitalName    - Hospital naam
+        city            - City naam
+        requestId       - BloodRequest ID (String)
+        fulfilledAt     - Formatted datetime string
+        donorName       - Donor ka naam (optional)
+        unitsRequired   - Units donated (String)
+        appDeepLink     - App CTA link
+        unsubscribeUrl  - Unsubscribe URL (CAN-SPAM)
+
+    Security:
+        All values th:text — XSS prevent
+        No th:utext for user data ever!
+        No inline expressions with user data
+
+    Email Client Support:
+        Gmail, Outlook 2016+, Apple Mail, Yahoo Mail
+        Table-based layout — flex/grid nahi!
+        MSO VML button — Outlook button support
+        HTML entities — emoji replacement
+        System fonts — no web font dependency
+
+    SOLID:
+        S → Sirf fulfilled notification — ek purpose
+        O → New variable = template extend karo
+    ════════════════════════════════════════════════════════
+-->
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <!-- ✅ Bug Fix 1: Complete meta tags -->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="format-detection"
+          content="telephone=no, date=no, address=no, email=no"/>
+    <meta name="color-scheme" content="light"/>
+    <meta name="supported-color-schemes" content="light"/>
+    <title>Blood Request Fulfilled — Blood Donor Network</title>
+
+    <style type="text/css">
+        /* ── Reset ───────────────────────────────────────── */
+        body, table, td, a {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust:     100%;
+        }
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+            border-collapse:  collapse;
+        }
+        img {
+            -ms-interpolation-mode: bicubic;
+            border:          0;
+            outline:         none;
+            text-decoration: none;
+        }
+
+        /* ── Base ────────────────────────────────────────── */
+        body {
+            margin:           0;
+            padding:          0;
+            background-color: #f3f4f6;
+            font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+        }
+
+        /* ── Wrapper ─────────────────────────────────────── */
+        .email-wrapper {
+            width:            100%;
+            background-color: #f3f4f6;
+            padding:          20px 0;
+        }
+        .email-container {
+            max-width:        600px;
+            margin:           0 auto;
+            background-color: #ffffff;
+            border-radius:    12px;
+            overflow:         hidden;
+            box-shadow:       0 4px 20px rgba(0, 0, 0, 0.10);
+        }
+
+        /* ── Header ──────────────────────────────────────── */
+        /* Blue theme — fulfilled/success state */
+        .header {
+            background-color: #2563eb;
+            background-image: linear-gradient(
+                    135deg, #2563eb 0%, #1d4ed8 100%
+            );
+            padding:          36px 24px;
+            text-align:       center;
+        }
+        /*
+        ✅ Bug Fix 2: No emoji — HTML entity use karo
+        U+1F389 = party popper → celebration symbol
+        */
+        .header-icon {
+            font-size:    48px;
+            margin-bottom: 12px;
+            line-height:   1;
+        }
+        .header-title {
+            color:       #ffffff;
+            font-size:   24px;
+            font-weight: 700;
+            margin:      0 0 8px 0;
+            line-height: 1.3;
+        }
+        .header-subtitle {
+            color:     rgba(255, 255, 255, 0.90);
+            font-size: 14px;
+            margin:    0 0 14px 0;
+        }
+        .fulfilled-badge {
+            display:          inline-block;
+            background-color: #ffffff;
+            color:            #2563eb;
+            padding:          6px 20px;
+            border-radius:    20px;
+            font-weight:      800;
+            font-size:        14px;
+            letter-spacing:   1px;
+            text-transform:   uppercase;
+        }
+
+        /* ── Body ────────────────────────────────────────── */
+        .email-body {
+            padding: 32px 24px;
+        }
+        .greeting {
+            font-size:   16px;
+            color:       #374151;
+            margin:      0 0 16px 0;
+            line-height: 1.5;
+        }
+        .intro-text {
+            font-size:   15px;
+            color:       #4b5563;
+            line-height: 1.7;
+            margin:      0 0 24px 0;
+        }
+
+        /* ✅ Bug Fix 3: Table-based info card — no flex/div */
+        .info-card {
+            background-color: #eff6ff;
+            border:           1px solid #bfdbfe;
+            border-radius:    8px;
+            margin-bottom:    24px;
+            overflow:         hidden;
+        }
+        .info-table      { width: 100%; border-collapse: collapse; }
+        .info-row-tr     { border-bottom: 1px solid #dbeafe; }
+        .info-row-tr:last-child { border-bottom: none; }
+        .info-label-td {
+            padding:          10px 16px;
+            color:            #6b7280;
+            font-size:        13px;
+            font-weight:      600;
+            width:            40%;
+            vertical-align:   middle;
+            background-color: #eff6ff;
+        }
+        .info-value-td {
+            padding:          10px 16px;
+            color:            #111827;
+            font-size:        13px;
+            font-weight:      500;
+            text-align:       right;
+            vertical-align:   middle;
+        }
+        .blood-group-value {
+            color:       #dc2626;
+            font-weight: 700;
+            font-size:   15px;
+        }
+
+        /* ✅ Bug Fix 10: Donor highlight card */
+        .donor-card {
+            background-color: #f0fdf4;
+            border:           1px solid #bbf7d0;
+            border-left:      4px solid #059669;
+            border-radius:    8px;
+            padding:          16px 20px;
+            margin-bottom:    24px;
+        }
+        .donor-card-label {
+            color:       #065f46;
+            font-size:   12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin:      0 0 6px 0;
+        }
+        .donor-name {
+            color:       #047857;
+            font-size:   18px;
+            font-weight: 700;
+            margin:      0;
+        }
+
+        /* ✅ Bug Fix 7: Fulfilled timestamp card */
+        .time-card {
+            background-color: #fafafa;
+            border:           1px solid #e5e7eb;
+            border-radius:    8px;
+            padding:          12px 16px;
+            margin-bottom:    24px;
+            text-align:       center;
+        }
+        .time-label {
+            color:       #9ca3af;
+            font-size:   12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin:      0 0 4px 0;
+        }
+        .time-value {
+            color:       #374151;
+            font-size:   16px;
+            font-weight: 600;
+            margin:      0;
+        }
+
+        /* ✅ Bug Fix 10: Thank you / gratitude section */
+        .gratitude-card {
+            background-color: #fff7ed;
+            border:           1px solid #fed7aa;
+            border-left:      4px solid #f97316;
+            border-radius:    8px;
+            padding:          16px 20px;
+            margin-bottom:    24px;
+        }
+        .gratitude-title {
+            color:       #9a3412;
+            font-size:   14px;
+            font-weight: 700;
+            margin:      0 0 8px 0;
+        }
+        .gratitude-text {
+            color:       #7c3f18;
+            font-size:   13px;
+            line-height: 1.6;
+            margin:      0;
+        }
+
+        /* ✅ Bug Fix 5: CTA Button */
+        .cta-wrapper  { text-align: center; margin: 24px 0; }
+        .cta-btn {
+            display:          inline-block;
+            background-color: #2563eb;
+            color:            #ffffff;
+            text-decoration:  none;
+            padding:          14px 32px;
+            border-radius:    8px;
+            font-size:        16px;
+            font-weight:      700;
+            letter-spacing:   0.3px;
+        }
+
+        /* ── Footer ──────────────────────────────────────── */
+        .email-footer {
+            background-color: #f9fafb;
+            border-top:       1px solid #e5e7eb;
+            padding:          24px;
+            text-align:       center;
+        }
+        .footer-brand {
+            color:       #374151;
+            font-size:   14px;
+            font-weight: 600;
+            margin:      0 0 8px 0;
+        }
+        .footer-meta      { color: #9ca3af; font-size: 12px; margin: 4px 0; }
+        .unsubscribe-link {
+            color:           #9ca3af;
+            font-size:       11px;
+            text-decoration: underline;
+        }
+
+        /* ── Responsive ──────────────────────────────────── */
+        /* ✅ Bug Fix 9: Mobile responsive */
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                border-radius: 0 !important;
+            }
+            .email-body {
+                padding: 20px 16px !important;
+            }
+            .header {
+                padding: 24px 16px !important;
+            }
+            .header-title {
+                font-size: 20px !important;
+            }
+            .cta-btn {
+                display:   block !important;
+                padding:   12px 20px !important;
+                font-size: 14px !important;
+            }
+            .info-label-td,
+            .info-value-td {
+                display:    block !important;
+                width:      100% !important;
+                text-align: left !important;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="email-wrapper">
+    <div class="email-container">
+
+        <!--
+        ═══════════════════════════════════════════════
+        HEADER
+        ✅ Bug Fix 2: No emoji — HTML entity
+        ✅ FULFILLED badge — clear status
+        ═══════════════════════════════════════════════
+        -->
+        <div class="header">
+            <!--
+            Star/celebration symbol — Outlook safe
+            &#9733; = filled star
+            Plain text fallback guaranteed
+            -->
+            <div class="header-icon" aria-hidden="true">&#9733;</div>
+
+            <!-- ✅ Bug Fix 2: No emoji in heading -->
+            <h1 class="header-title">Blood Request Fulfilled!</h1>
+
+            <p class="header-subtitle">
+                Great news — the blood has been successfully arranged
+            </p>
+
+            <div class="fulfilled-badge">
+                Request Fulfilled
+            </div>
+        </div>
+
+        <!--
+        ═══════════════════════════════════════════════
+        BODY
+        ✅ Bug Fix 3: Table-based layout
+        ✅ Bug Fix 4: Separate th:text — no inline mixing
+        ✅ Bug Fix 7: fulfilledAt formatted display
+        ✅ Bug Fix 8: city, donorName, unitsRequired added
+        ✅ Bug Fix 10: Thank you + next steps
+        ═══════════════════════════════════════════════
+        -->
+        <div class="email-body">
+
+            <!-- Greeting -->
+            <p class="greeting">
+                Dear Requester,
+            </p>
+
+            <!-- ✅ Bug Fix 4: Intro text — no inline th:text mixing -->
+            <p class="intro-text">
+                We are pleased to inform you that your blood request has been
+                successfully fulfilled. The donor has confirmed their donation.
+                Please coordinate with the hospital and donor through the app.
+            </p>
+
+            <!--
+            Donor Highlight
+            ✅ Bug Fix 8: donorName added
+            ✅ Bug Fix 10: Thank you section
+            -->
+            <div class="donor-card"
+                 th:if="${donorName != null and !#strings.isEmpty(donorName)}">
+                <p class="donor-card-label">Donor Who Helped:</p>
+                <p class="donor-name"
+                   th:text="${donorName}">Donor Name</p>
+            </div>
+
+            <!--
+            Fulfilled Timestamp
+            ✅ Bug Fix 7: Clean display — not raw datetime
+            Logic:
+                Service mein: DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm")
+                Template: Just display — formatting done in Java
+            -->
+            <div class="time-card">
+                <p class="time-label">Fulfilled At</p>
+                <p class="time-value"
+                   th:text="${fulfilledAt}">27 Mar 2024, 10:00</p>
+            </div>
+
+            <!--
+            Request Summary — Table layout
+            ✅ Bug Fix 3: Table-based — Outlook safe
+            ✅ Bug Fix 4: Each value in own td — no inline mixing
+            ✅ Bug Fix 8: city, unitsRequired added
+            -->
+            <div class="info-card">
+                <table class="info-table"
+                       cellpadding="0"
+                       cellspacing="0">
+
+                    <!-- Patient -->
+                    <tr class="info-row-tr">
+                        <td class="info-label-td">Patient Name</td>
+                        <td class="info-value-td"
+                            th:text="${patientName}">Patient Name</td>
+                    </tr>
+
+                    <!-- Blood Group -->
+                    <tr class="info-row-tr">
+                        <td class="info-label-td">Blood Group</td>
+                        <td class="info-value-td">
+                            <strong class="blood-group-value"
+                                    th:text="${bloodGroup}">O+</strong>
+                        </td>
+                    </tr>
+
+                    <!-- Hospital -->
+                    <tr class="info-row-tr">
+                        <td class="info-label-td">Hospital</td>
+                        <td class="info-value-td"
+                            th:text="${hospitalName}">Hospital Name</td>
+                    </tr>
+
+                    <!-- ✅ Bug Fix 8: City added -->
+                    <tr class="info-row-tr"
+                        th:if="${city != null and !#strings.isEmpty(city)}">
+                        <td class="info-label-td">City</td>
+                        <td class="info-value-td"
+                            th:text="${city}">City</td>
+                    </tr>
+
+                    <!-- ✅ Bug Fix 8: Units Required added -->
+                    <tr class="info-row-tr"
+                        th:if="${unitsRequired != null}">
+                        <td class="info-label-td">Units Donated</td>
+                        <td class="info-value-td"
+                            th:text="${unitsRequired}">1</td>
+                    </tr>
+
+                    <!-- Status — Green badge -->
+                    <tr class="info-row-tr">
+                        <td class="info-label-td">Status</td>
+                        <td class="info-value-td">
+                        <span style="
+                            color: #059669;
+                            font-weight: 700;
+                            font-size: 13px;
+                        ">
+                            FULFILLED
+                        </span>
+                        </td>
+                    </tr>
+
+                    <!-- Request ID -->
+                    <tr class="info-row-tr">
+                        <td class="info-label-td">Request ID</td>
+                        <td class="info-value-td"
+                            th:text="'#' + ${requestId}">#12345</td>
+                    </tr>
+
+                </table>
+            </div>
+
+            <!--
+            CTA Button
+            ✅ Bug Fix 5: CTA button added
+            MSO VML — Outlook button support
+            -->
+            <div class="cta-wrapper">
+                <!--[if mso]>
+                <v:roundrect
+                        xmlns:v="urn:schemas-microsoft-com:vml"
+                        xmlns:w="urn:schemas-microsoft-com:office:word"
+                        th:href="${appDeepLink}"
+                        style="height:48px;v-text-anchor:middle;width:240px;"
+                        arcsize="10%"
+                        strokecolor="#2563eb"
+                        fillcolor="#2563eb">
+                    <w:anchorlock/>
+                    <center style="
+                    color:       #ffffff;
+                    font-family: sans-serif;
+                    font-size:   16px;
+                    font-weight: bold;">
+                        View Request in App
+                    </center>
+                </v:roundrect>
+                <![endif]-->
+                <!--[if !mso]><!-->
+                <a class="cta-btn"
+                   th:href="${appDeepLink}"
+                   href="https://blooddonor.app">
+                    View Request in App
+                </a>
+                <!--<![endif]-->
+            </div>
+
+            <!--
+            Gratitude Section
+            ✅ Bug Fix 10: Thank you + community building
+            -->
+            <div class="gratitude-card">
+                <p class="gratitude-title">
+                    Thank You — Together We Saved a Life
+                </p>
+                <p class="gratitude-text">
+                    This request was fulfilled because of the generosity
+                    of a registered donor in our network. Their act of
+                    kindness makes our community stronger. We hope
+                    your patient recovers quickly. Feel free to share your
+                    experience and encourage others to register as donors.
+                </p>
+            </div>
+
+        </div>
+
+        <!--
+        ═══════════════════════════════════════════════
+        FOOTER
+        ✅ Bug Fix 2: No emoji
+        ✅ Bug Fix 6: Real unsubscribe — CAN-SPAM
+        ═══════════════════════════════════════════════
+        -->
+        <div class="email-footer">
+
+            <p class="footer-brand">Blood Donor Network</p>
+            <p class="footer-meta">Saving Lives Together</p>
+
+            <p class="footer-meta">
+                Request ID:
+                <span th:text="'#' + ${requestId}">#12345</span>
+            </p>
+
+            <!--
+            ✅ Bug Fix 6: CAN-SPAM compliant unsubscribe
+            Legal requirement — working link hona chahiye
+            -->
+            <p class="footer-meta" style="margin-top: 16px;">
+                You received this because you submitted a blood request.
+                <br/>
+                <a class="unsubscribe-link"
+                   th:href="${unsubscribeUrl}"
+                   href="https://blooddonor.app/unsubscribe">
+                    Manage notification preferences
+                </a>
+            </p>
+
+            <p class="footer-meta"
+               style="margin-top: 8px; font-size: 11px;">
+                Blood Donor Network | India
+                <br/>
+                This is an automated notification.
+                Please do not reply to this email.
+            </p>
+
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

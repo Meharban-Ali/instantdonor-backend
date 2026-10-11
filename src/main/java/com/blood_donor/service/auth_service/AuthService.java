@@ -142,7 +142,21 @@ public class AuthService {
             if (!user.getIsActive().booleanValue()) {
                 throw ApiException.forbidden("Account is deactivated");
             }
-            return this.buildAuthResponse(user);
+            AuthResponse authResponse = this.buildAuthResponse(user);
+            if (this.redisTemplate != null) {
+                try {
+                    Date expirationDate = this.jwtTokenProvider.extractClaim(refreshToken, Claims::getExpiration);
+                    long remainingMs = expirationDate.getTime() - System.currentTimeMillis();
+                    if (remainingMs > 0L && this.redisTemplate.opsForValue() != null) {
+                        this.redisTemplate.opsForValue().set("blacklist:token:" + refreshToken, "true", remainingMs, TimeUnit.MILLISECONDS);
+                        log.info("Old refresh token rotated and blacklisted successfully");
+                    }
+                }
+                catch (Exception e) {
+                    log.warn("Failed to blacklist old refresh token: {}", (Object)e.getMessage());
+                }
+            }
+            return authResponse;
         }
         catch (ApiException e) {
             throw e;

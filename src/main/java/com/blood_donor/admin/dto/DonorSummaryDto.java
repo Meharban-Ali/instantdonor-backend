@@ -93,14 +93,14 @@ public class DonorSummaryDto {
     }
 
     public String getStatusSummary() {
-        Long days;
         if (!Boolean.TRUE.equals(this.isAvailable)) {
             return "Not Available";
         }
         if (Boolean.TRUE.equals(this.getIsEligible())) {
             return "Available + Eligible";
         }
-        return "Available \u2014 Eligible in " + days + " day" + ((days = this.getDaysUntilEligible()) == 1L ? "" : "s");
+        Long days = this.getDaysUntilEligible();
+        return "Available — Eligible in " + days + " day" + (days != null && days == 1L ? "" : "s");
     }
 
     public static DonorSummaryDtoBuilder builder() {

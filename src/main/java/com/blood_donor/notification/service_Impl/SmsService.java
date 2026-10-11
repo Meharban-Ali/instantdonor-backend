@@ -110,7 +110,7 @@ implements ISmsService {
             return CompletableFuture.completedFuture(null);
         }
         log.info("Bulk SMS: total={}, valid={}, preview={}", new Object[]{phoneNumbers.size(), validPhones.size(), this.truncatePreview(message)});
-        List<CompletableFuture> futures = validPhones.stream().map(phone -> this.sendSms((String)phone, message)).toList();
+        List<CompletableFuture<Boolean>> futures = validPhones.stream().map(phone -> this.sendSms(phone, message)).toList();
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((res, ex) -> {
             long successCount = futures.stream().filter(f -> {
                 try {

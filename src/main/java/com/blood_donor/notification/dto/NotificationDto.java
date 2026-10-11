@@ -24,38 +24,46 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import java.time.LocalDateTime;
 
-@JsonDeserialize(builder=NotificationDtoBuilder.class)
+@JsonDeserialize(builder=NotificationDto.NotificationDtoBuilder.class)
 @JsonIgnoreProperties(ignoreUnknown=true)
 @Schema(description="Data Transfer Object representing a pending/received notification for a donor")
 public final class NotificationDto {
     @NotNull(message="Notification ID is required")
     @Schema(description="Unique identifier of the notification tracking response", example="1")
-    private final @NotNull(message="Notification ID is required") Long id;
+    private final Long id;
+
     @NotNull(message="Blood request ID is required")
     @Schema(description="ID of the associated emergency blood request", example="101")
-    private final @NotNull(message="Blood request ID is required") Long requestId;
+    private final Long requestId;
+
     @NotBlank(message="Patient name is required")
     @Schema(description="Name of the patient needing blood", example="Rahul Sharma")
-    private final @NotBlank(message="Patient name is required") String patientName;
+    private final String patientName;
+
     @NotNull(message="Blood group is required")
     @Schema(description="Required blood group", example="A_POSITIVE")
-    private final @NotNull(message="Blood group is required") BloodGroup bloodGroup;
+    private final BloodGroup bloodGroup;
+
     @NotBlank(message="Hospital name is required")
     @Schema(description="Name of the hospital where blood is required", example="City Hospital")
-    private final @NotBlank(message="Hospital name is required") String hospitalName;
+    private final String hospitalName;
+
     @NotBlank(message="City is required")
     @Schema(description="City where the hospital is located", example="Delhi")
-    private final @NotBlank(message="City is required") String city;
+    private final String city;
+
     @NotNull(message="Urgency level is required")
     @Schema(description="Urgency level of the blood request", example="CRITICAL")
-    private final @NotNull(message="Urgency level is required") UrgencyLevel urgency;
+    private final UrgencyLevel urgency;
+
     @NotNull(message="Notification status is required")
     @Schema(description="Status of the donor notification response", example="notified")
-    private final @NotNull(message="Notification status is required") ResponseStatus status;
+    private final ResponseStatus status;
+
     @NotNull(message="Notification timestamp is required")
     @PastOrPresent(message="Notification timestamp cannot be in the future")
     @Schema(description="Timestamp when the notification was dispatched", example="2026-06-03T21:20:00")
-    private final @NotNull(message="Notification timestamp is required") @PastOrPresent(message="Notification timestamp cannot be in the future") LocalDateTime notifiedAt;
+    private final LocalDateTime notifiedAt;
 
     public static NotificationDto fromEntity(DonorRequestResponse record) {
         if (record == null) {

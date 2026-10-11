@@ -131,7 +131,7 @@ public class AuthService {
     @Transactional(readOnly=true)
     public AuthResponse refreshToken(String refreshToken) {
         try {
-            if (this.redisTemplate != null && Boolean.TRUE.equals(this.redisTemplate.hasKey((Object)("blacklist:token:" + refreshToken)))) {
+            if (this.redisTemplate != null && Boolean.TRUE.equals(this.redisTemplate.hasKey("blacklist:token:" + refreshToken))) {
                 throw ApiException.unauthorized("Refresh token has been revoked");
             }
             String email = this.jwtTokenProvider.extractEmail(refreshToken);
@@ -163,7 +163,7 @@ public class AuthService {
                 expirationDate = this.jwtTokenProvider.extractClaim(accessToken, Claims::getExpiration);
                 remainingMs = expirationDate.getTime() - System.currentTimeMillis();
                 if (remainingMs > 0L) {
-                    this.redisTemplate.opsForValue().set((Object)("blacklist:token:" + accessToken), (Object)"true", remainingMs, TimeUnit.MILLISECONDS);
+                    this.redisTemplate.opsForValue().set("blacklist:token:" + accessToken, "true", remainingMs, TimeUnit.MILLISECONDS);
                     log.info("Access token blacklisted successfully on logout");
                 }
             }
@@ -176,7 +176,7 @@ public class AuthService {
                 expirationDate = this.jwtTokenProvider.extractClaim(refreshToken, Claims::getExpiration);
                 remainingMs = expirationDate.getTime() - System.currentTimeMillis();
                 if (remainingMs > 0L) {
-                    this.redisTemplate.opsForValue().set((Object)("blacklist:token:" + refreshToken), (Object)"true", remainingMs, TimeUnit.MILLISECONDS);
+                    this.redisTemplate.opsForValue().set("blacklist:token:" + refreshToken, "true", remainingMs, TimeUnit.MILLISECONDS);
                     log.info("Refresh token blacklisted successfully on logout");
                 }
             }

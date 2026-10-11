@@ -18,12 +18,14 @@ import java.time.LocalDate;
 
 public class DonorRegisterRequest {
     @NotNull(message="Blood group is required")
-    private @NotNull(message="Blood group is required") BloodGroup bloodGroup;
+    private BloodGroup bloodGroup;
+
     @Valid
     @NotNull(message="Location is required")
-    private @Valid @NotNull(message="Location is required") LocationRequest location;
+    private LocationRequest location;
+
     @PastOrPresent(message="Last donation date cannot be in future")
-    private @PastOrPresent(message="Last donation date cannot be in future") LocalDate lastDonationDate;
+    private LocalDate lastDonationDate;
 
     public String getCity() {
         return this.location != null ? this.location.getCity() : null;

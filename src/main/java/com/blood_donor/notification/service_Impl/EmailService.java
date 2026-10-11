@@ -122,7 +122,7 @@ implements IEmailService {
             return CompletableFuture.completedFuture(null);
         }
         log.info("Bulk HTML email: total={}, valid={}, template={}", new Object[]{recipients.size(), validRecipients.size(), template});
-        List<CompletableFuture> futures = validRecipients.stream().map(email -> this.sendHtmlEmail((String)email, subject, template, variables)).toList();
+        List<CompletableFuture<Boolean>> futures = validRecipients.stream().map(email -> this.sendHtmlEmail(email, subject, template, variables)).toList();
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((result, ex) -> {
             long successCount = futures.stream().filter(f -> {
                 try {

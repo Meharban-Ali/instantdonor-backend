@@ -48,7 +48,7 @@ public class BloodRequestMapper {
     }
 
     public Page<BloodRequestResponse> toResponsePage(Page<BloodRequest> requestPage) {
-        List requests = requestPage.getContent();
+        List<BloodRequest> requests = requestPage.getContent();
         if (requests.isEmpty()) {
             return Page.empty((Pageable)requestPage.getPageable());
         }
@@ -61,8 +61,8 @@ public class BloodRequestMapper {
             Long count = (Long)row[2];
             countsMap.computeIfAbsent(reqId, k -> new HashMap()).put(status, count);
         }
-        List<BloodRequestResponse> dtos = requests.stream().map(r -> this.toResponseWithCounts((BloodRequest)r, countsMap.getOrDefault(r.getId(), Map.of()))).toList();
-        return new PageImpl(dtos, requestPage.getPageable(), requestPage.getTotalElements());
+        List<BloodRequestResponse> dtos = requests.stream().map(r -> this.toResponseWithCounts(r, countsMap.getOrDefault(r.getId(), Map.of()))).toList();
+        return new PageImpl<>(dtos, requestPage.getPageable(), requestPage.getTotalElements());
     }
 
     private BloodRequestResponse toResponseWithCounts(BloodRequest request, Map<ResponseStatus, Long> counts) {

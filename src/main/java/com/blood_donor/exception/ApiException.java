@@ -16,6 +16,14 @@ public class ApiException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
+    public HttpStatus getStatus() {
+        return status;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
     // ✅ Simple constructor — errorCode optional
     public ApiException(String message, HttpStatus status) {
         this(message, status, status.name());

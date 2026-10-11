@@ -17,6 +17,9 @@ import org.springframework.stereotype.Component;
 // @Order(1) — sabse pehle run hoga
 // @Profile("!test") — test mein skip hoga
 // Actual logic AdminInitializerService mein hai
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor

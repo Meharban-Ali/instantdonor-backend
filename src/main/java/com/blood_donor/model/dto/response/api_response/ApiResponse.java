@@ -19,19 +19,19 @@ public class ApiResponse<T> {
     private LocalDateTime timestamp;
 
     public static <T> ApiResponse<T> success(String message, T data) {
-        return ApiResponse.builder().success(true).message(message).data(data).timestamp(LocalDateTime.now()).build();
+        return ApiResponse.<T>builder().success(true).message(message).data(data).timestamp(LocalDateTime.now()).build();
     }
 
     public static <T> ApiResponse<T> success(String message) {
-        return ApiResponse.builder().success(true).message(message).timestamp(LocalDateTime.now()).build();
+        return ApiResponse.<T>builder().success(true).message(message).timestamp(LocalDateTime.now()).build();
     }
 
     public static <T> ApiResponse<T> failure(String error) {
-        return ApiResponse.builder().success(false).error(error).timestamp(LocalDateTime.now()).build();
+        return ApiResponse.<T>builder().success(false).error(error).timestamp(LocalDateTime.now()).build();
     }
 
     public static <T> ApiResponseBuilder<T> builder() {
-        return new ApiResponseBuilder();
+        return new ApiResponseBuilder<T>();
     }
 
     public boolean isSuccess() {
@@ -94,7 +94,7 @@ public class ApiResponse<T> {
             return false;
         }
         T this$data = this.getData();
-        T other$data = other.getData();
+        Object other$data = other.getData();
         if (this$data == null ? other$data != null : !this$data.equals(other$data)) {
             return false;
         }

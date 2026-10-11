@@ -19,13 +19,15 @@ import java.math.BigDecimal;
 public class CreateBloodRequestDto {
     @Valid
     @NotNull(message="Patient information is required")
-    private @Valid @NotNull(message="Patient information is required") PatientInfo patient;
+    private PatientInfo patient;
+
     @Valid
     @NotNull(message="Hospital information is required")
-    private @Valid @NotNull(message="Hospital information is required") HospitalInfo hospital;
+    private HospitalInfo hospital;
+
     @Valid
     @NotNull(message="Request configuration is required")
-    private @Valid @NotNull(message="Request configuration is required") RequestConfig config;
+    private RequestConfig config;
 
     public String getPatientName() {
         return this.patient != null ? this.patient.getPatientName() : null;

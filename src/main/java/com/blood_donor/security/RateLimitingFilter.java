@@ -29,6 +29,9 @@ import java.util.concurrent.TimeUnit;
  * Utilizes Redis for distributed deployments, with a transparent
  * local ConcurrentHashMap fallback.
  */
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Slf4j
 @Component
 public class RateLimitingFilter extends OncePerRequestFilter {

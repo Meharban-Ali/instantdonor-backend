@@ -24,6 +24,9 @@ import java.util.Arrays;
 //   Email fail → log karo → monitoring alert
 //   SMS fail → log karo → fallback possible
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Slf4j
 public class AsyncExceptionHandler
         implements AsyncUncaughtExceptionHandler {

@@ -56,8 +56,15 @@ implements IBloodRequestResponseService {
         }
         boolean isAccepted = Boolean.TRUE.equals(dto.getAccept());
         Optional<DonorRequestResponse> existingResponse = this.responseRepo.findByDonorProfileIdAndRequestId(donor.getId(), request.getId());
+        ResponseStatus prevStatus = existingResponse.map(DonorRequestResponse::getStatus).orElse(null);
+        ResponseStatus newStatus = isAccepted ? ResponseStatus.ACCEPTED : ResponseStatus.REJECTED;
+
+        if (prevStatus == newStatus) {
+            log.info("Donor response unchanged: donorId={}, requestId={}, status={}", donor.getId(), request.getId(), newStatus);
+            return this.requestMapper.toResponse(request);
+        }
+
         if (existingResponse.isPresent()) {
-            ResponseStatus newStatus = isAccepted ? ResponseStatus.ACCEPTED : ResponseStatus.REJECTED;
             this.responseRepo.updateResponseStatus(donor.getId(), request.getId(), newStatus, LocalDateTime.now(), dto.getNotes());
         } else {
             DonorRequestResponse response = DonorRequestResponse.builder().donor(donor).request(request).notes(dto.getNotes()).build();

@@ -49,7 +49,7 @@ implements IBloodRequestQueryService {
     private final BloodRequestMapper requestMapper;
     private static final int MAX_PAGE_SIZE = 50;
     private static final int DEFAULT_SIZE = 10;
-    private static final List<BloodRequestStatus> ACTIVE_STATUSES = List.of(BloodRequestStatus.PENDING, BloodRequestStatus.ACTIVE);
+    private static final List<BloodRequestStatus> ACTIVE_STATUSES = List.of(BloodRequestStatus.PENDING, BloodRequestStatus.MATCHING, BloodRequestStatus.ACTIVE);
 
     @Override
     @Transactional(readOnly=true)

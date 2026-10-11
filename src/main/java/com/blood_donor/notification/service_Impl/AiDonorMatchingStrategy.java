@@ -68,7 +68,7 @@ implements DonorMatchingStrategy {
             return List.of();
         }
         try {
-            List<BloodGroup> compatibleGroups = BloodGroup.getCompatibleDonors(request.getBloodGroup());
+            List<String> compatibleGroups = BloodGroup.getCompatibleDonors(request.getBloodGroup()).stream().map(Enum::name).toList();
             List<DonorProfile> donors = this.donorRepo.findCityDonorsWithLimit(compatibleGroups, request.getCity(), limit);
             log.info("City fallback: city={}, found={}, requestId={}", new Object[]{request.getCity(), donors.size(), request.getId()});
             return donors.stream().map(this::toAiDonorResult).toList();

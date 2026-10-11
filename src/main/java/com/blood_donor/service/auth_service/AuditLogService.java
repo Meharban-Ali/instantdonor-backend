@@ -24,7 +24,6 @@ public class AuditLogService {
     private final AuditLogRepository auditLogRepository;
 
     @Async
-    @Transactional
     public void log(String action, String details, String performedBy, String clientIp) {
         try {
             AuditLog auditLog = AuditLog.builder().action(action).details(details).performedBy(performedBy).clientIp(clientIp).build();

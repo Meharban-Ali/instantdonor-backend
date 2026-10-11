@@ -41,7 +41,7 @@ implements ISchedulerService {
     @Override
     @Transactional
     public int expireOldRequests() {
-        int count = this.requestRepo.bulkExpireRequests(List.of(BloodRequestStatus.PENDING, BloodRequestStatus.MATCHING), BloodRequestStatus.EXPIRED, LocalDateTime.now());
+        int count = this.requestRepo.bulkExpireRequests(List.of(BloodRequestStatus.PENDING, BloodRequestStatus.MATCHING, BloodRequestStatus.ACTIVE), BloodRequestStatus.EXPIRED, LocalDateTime.now());
         if (count > 0) {
             log.info("Expired {} blood requests", (Object)count);
         }

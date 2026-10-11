@@ -45,7 +45,7 @@ extends JpaRepository<DonorProfile, Long> {
 
     public List<DonorProfile> findByBloodGroupInAndIsAvailableTrue(List<BloodGroup> var1);
 
-    @Query(value="SELECT dp.*\nFROM donor_profiles dp\nWHERE dp.is_available = true\n  AND dp.blood_group IN :bloodGroups\n  AND (6371 * acos(LEAST(1.0,\n      cos(radians(:lat)) * cos(radians(dp.latitude))\n      * cos(radians(dp.longitude) - radians(:lng))\n      + sin(radians(:lat)) * sin(radians(dp.latitude))\n  ))) <= :radiusKm\nORDER BY dp.reliability_score DESC\nLIMIT :limit\n", nativeQuery=true)
+    @Query(value="SELECT dp.*\nFROM donor_profiles dp\nWHERE dp.is_available = true\n  AND dp.latitude IS NOT NULL AND dp.longitude IS NOT NULL\n  AND dp.blood_group IN :bloodGroups\n  AND (6371 * acos(GREATEST(-1.0, LEAST(1.0,\n      cos(radians(:lat)) * cos(radians(dp.latitude))\n      * cos(radians(dp.longitude) - radians(:lng))\n      + sin(radians(:lat)) * sin(radians(dp.latitude))\n  )))) <= :radiusKm\nORDER BY dp.reliability_score DESC\nLIMIT :limit\n", nativeQuery=true)
     public List<DonorProfile> findNearByCompatibleDonors(@Param(value="lat") double var1, @Param(value="lng") double var3, @Param(value="radiusKm") double var5, @Param(value="bloodGroups") List<String> var7, @Param(value="limit") int var8);
 
     public long countByIsAvailableTrue();
@@ -117,11 +117,11 @@ extends JpaRepository<DonorProfile, Long> {
     public Page<DonorProfile> findByBloodGroupAndCityAndMinScore(@Param(value="bloodGroup") BloodGroup var1, @Param(value="city") String var2, @Param(value="minScore") double var3, Pageable var5);
 
     @Query(value="SELECT dp.* FROM donor_profiles dp\nWHERE dp.blood_group IN :bloodGroups\n  AND LOWER(dp.city) = LOWER(:city)\n  AND dp.is_available = true\nORDER BY dp.reliability_score DESC\nLIMIT :limit\n", nativeQuery=true)
-    public List<DonorProfile> findCityDonorsWithLimit(@Param(value="bloodGroups") List<BloodGroup> var1, @Param(value="city") String var2, @Param(value="limit") int var3);
+    public List<DonorProfile> findCityDonorsWithLimit(@Param(value="bloodGroups") List<String> var1, @Param(value="city") String var2, @Param(value="limit") int var3);
 
     public List<DonorProfile> findByResponseRateIsNull();
 
-    @Query(value="SELECT (\n    6371 * acos(\n        LEAST(1.0,\n            cos(radians(:lat1))\n            * cos(radians(:lat2))\n            * cos(radians(:lng2) - radians(:lng1))\n            + sin(radians(:lat1))\n            * sin(radians(:lat2))\n        )\n    )\n)\n", nativeQuery=true)
+    @Query(value="SELECT (\n    6371 * acos(\n        GREATEST(-1.0, LEAST(1.0,\n            cos(radians(:lat1))\n            * cos(radians(:lat2))\n            * cos(radians(:lng2) - radians(:lng1))\n            + sin(radians(:lat1))\n            * sin(radians(:lat2))\n        ))\n    )\n)\n", nativeQuery=true)
     public Double calculateDistanceKm(@Param(value="lat1") double var1, @Param(value="lng1") double var3, @Param(value="lat2") double var5, @Param(value="lng2") double var7);
 }
 

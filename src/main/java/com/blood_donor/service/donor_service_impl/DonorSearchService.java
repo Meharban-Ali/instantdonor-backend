@@ -52,7 +52,7 @@ implements IDonorSearchService {
         PageRequest pageable = PageRequest.of((int)req.getPage(), (int)req.getSize(), (Sort)Sort.by((String[])new String[]{"reliabilityScore"}).descending());
         Page<DonorProfile> donors = this.donorRepo.findByBloodGroupInAndCityIgnoreCaseAndIsAvailableTrue(compatibleGroups, req.getCity(), (Pageable)pageable);
         log.info("City search: city={}, bloodGroup={}, found={}", new Object[]{req.getCity(), req.getBloodGroup(), donors.getTotalElements()});
-        return donors.map(donor -> this.donorMapper.toResponse((DonorProfile)donor, null));
+        return donors.map(donor -> this.donorMapper.toResponse((DonorProfile)donor, null, true));
     }
 
     @Override
@@ -67,7 +67,7 @@ implements IDonorSearchService {
         log.info("Radius search: lat={}, lng={}, radius={}km, found={}", new Object[]{req.getRadiusSearch().getLatitude(), req.getRadiusSearch().getLongitude(), req.getRadiusSearch().getRadiusKm(), donors.size()});
         return donors.stream().map(donor -> {
             Double distanceKm = this.donorRepo.calculateDistanceKm(req.getRadiusSearch().getLatitude(), req.getRadiusSearch().getLongitude(), donor.getLatitude().doubleValue(), donor.getLongitude().doubleValue());
-            return this.donorMapper.toResponse((DonorProfile)donor, distanceKm);
+            return this.donorMapper.toResponse((DonorProfile)donor, distanceKm, true);
         }).collect(Collectors.toList());
     }
 

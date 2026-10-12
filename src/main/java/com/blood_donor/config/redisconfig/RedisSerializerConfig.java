@@ -32,6 +32,11 @@ public class RedisSerializerConfig {
     private ObjectMapper createRedisObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule((Module)new JavaTimeModule());
+        com.fasterxml.jackson.databind.module.SimpleModule pageModule = new com.fasterxml.jackson.databind.module.SimpleModule();
+        PageImplDeserializer pageDeserializer = new PageImplDeserializer();
+        pageModule.addDeserializer(org.springframework.data.domain.Page.class, pageDeserializer);
+        pageModule.addDeserializer(org.springframework.data.domain.PageImpl.class, (com.fasterxml.jackson.databind.JsonDeserializer) pageDeserializer);
+        mapper.registerModule(pageModule);
         mapper.activateDefaultTyping((PolymorphicTypeValidator)BasicPolymorphicTypeValidator.builder().allowIfBaseType(Object.class).build(), ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
         return mapper;
     }

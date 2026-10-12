@@ -19,11 +19,15 @@ import com.blood_donor.model.dto.request.blood_request.BloodRequestStatus;
 import com.blood_donor.model.entity.BloodRequest;
 import com.blood_donor.repository.donor_repository.projection.CityDemandProjection;
 import com.blood_donor.repository.donor_repository.projection.CityStatsProjection;
+import jakarta.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -51,18 +55,31 @@ extends JpaRepository<BloodRequest, Long> {
 
     public long countByCityIgnoreCaseAndStatusIn(String var1, List<BloodRequestStatus> var2);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT br FROM BloodRequest br WHERE br.id = :id")
+    public Optional<BloodRequest> findByIdForUpdate(@Param("id") Long id);
+
+    public boolean existsByCreatedByIdAndStatusInAndBloodGroup(Long userId, List<BloodRequestStatus> statuses, BloodGroup bloodGroup);
+
+    @EntityGraph(attributePaths = {"createdBy"})
     public Page<BloodRequest> findByStatusInOrderByCreatedAtDesc(List<BloodRequestStatus> var1, Pageable var2);
 
+    @EntityGraph(attributePaths = {"createdBy"})
     public Page<BloodRequest> findByStatusInAndCityIgnoreCase(List<BloodRequestStatus> var1, String var2, Pageable var3);
 
+    @EntityGraph(attributePaths = {"createdBy"})
     public Page<BloodRequest> findByStatusInAndBloodGroup(List<BloodRequestStatus> var1, BloodGroup var2, Pageable var3);
 
+    @EntityGraph(attributePaths = {"createdBy"})
     public Page<BloodRequest> findByStatusInAndCityIgnoreCaseAndBloodGroup(List<BloodRequestStatus> var1, String var2, BloodGroup var3, Pageable var4);
 
+    @EntityGraph(attributePaths = {"createdBy"})
     public Page<BloodRequest> findByCreatedByIdOrderByCreatedAtDesc(Long var1, Pageable var2);
 
+    @EntityGraph(attributePaths = {"createdBy"})
     public Page<BloodRequest> findByStatusAndCityIgnoreCaseAndBloodGroupOrderByCreatedAtDesc(BloodRequestStatus var1, String var2, BloodGroup var3, Pageable var4);
 
+    @EntityGraph(attributePaths = {"createdBy"})
     public Page<BloodRequest> findByStatusOrderByCreatedAtDesc(BloodRequestStatus var1, Pageable var2);
 
     @Query(value="SELECT AVG(TIMESTAMPDIFF(HOUR, created_at, fulfilled_at))\nFROM blood_requests\nWHERE status = 'FULFILLED'\n  AND fulfilled_at IS NOT NULL\n", nativeQuery=true)
@@ -74,6 +91,7 @@ extends JpaRepository<BloodRequest, Long> {
     @Query(value="SELECT\n    city                                               AS city,\n    COUNT(*)                                           AS totalRequests,\n    SUM(CASE WHEN status IN ('ACTIVE','PENDING','MATCHING')\n             THEN 1 ELSE 0 END)                        AS activeRequests,\n    SUM(CASE WHEN status = 'FULFILLED'\n             THEN 1 ELSE 0 END)                        AS fulfilledRequests,\n    SUM(CASE WHEN urgency = 'CRITICAL'\n             THEN 1 ELSE 0 END)                        AS criticalRequests\nFROM blood_requests\nWHERE created_at >= :since\nGROUP BY city\nORDER BY COUNT(*) DESC\nLIMIT :limit\n", nativeQuery=true)
     public List<CityStatsProjection> findCityWiseDemand(@Param(value="since") LocalDateTime var1, @Param(value="limit") int var2);
 
+    @EntityGraph(attributePaths = {"createdBy"})
     public List<BloodRequest> findTop10ByOrderByCreatedAtDesc();
 
     public boolean existsByIdAndStatusIn(Long var1, List<BloodRequestStatus> var2);

@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -31,18 +32,24 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface DonorProfileRepository
 extends JpaRepository<DonorProfile, Long> {
+    @EntityGraph(attributePaths = {"user"})
     public Optional<DonorProfile> findByUserId(Long var1);
 
     public boolean existsByUserId(Long var1);
 
+    @EntityGraph(attributePaths = {"user"})
     public List<DonorProfile> findByUserIdIn(List<Long> var1);
 
+    @EntityGraph(attributePaths = {"user"})
     public List<DonorProfile> findByIdIn(List<Long> var1);
 
+    @EntityGraph(attributePaths = {"user"})
     public List<DonorProfile> findByBloodGroupAndCityAndIsAvailableTrue(BloodGroup var1, String var2);
 
+    @EntityGraph(attributePaths = {"user"})
     public List<DonorProfile> findByBloodGroupInAndCityIgnoreCaseAndIsAvailableTrue(List<BloodGroup> var1, String var2);
 
+    @EntityGraph(attributePaths = {"user"})
     public List<DonorProfile> findByBloodGroupInAndIsAvailableTrue(List<BloodGroup> var1);
 
     @Query(value="SELECT dp.*\nFROM donor_profiles dp\nWHERE dp.is_available = true\n  AND dp.latitude IS NOT NULL AND dp.longitude IS NOT NULL\n  AND dp.blood_group IN :bloodGroups\n  AND (6371 * acos(GREATEST(-1.0, LEAST(1.0,\n      cos(radians(:lat)) * cos(radians(dp.latitude))\n      * cos(radians(dp.longitude) - radians(:lng))\n      + sin(radians(:lat)) * sin(radians(dp.latitude))\n  )))) <= :radiusKm\nORDER BY dp.reliability_score DESC\nLIMIT :limit\n", nativeQuery=true)
@@ -60,14 +67,19 @@ extends JpaRepository<DonorProfile, Long> {
 
     public long countByBloodGroupAndCityIgnoreCaseAndIsAvailableTrue(BloodGroup var1, String var2);
 
+    @EntityGraph(attributePaths = {"user"})
     public Page<DonorProfile> findByBloodGroupInAndCityIgnoreCaseAndIsAvailableTrue(List<BloodGroup> var1, String var2, Pageable var3);
 
+    @EntityGraph(attributePaths = {"user"})
     public Page<DonorProfile> findByCityIgnoreCaseAndIsAvailableTrueOrderByReliabilityScoreDesc(String var1, Pageable var2);
 
+    @EntityGraph(attributePaths = {"user"})
     public Page<DonorProfile> findByBloodGroupAndIsAvailableTrue(BloodGroup var1, Pageable var2);
 
+    @EntityGraph(attributePaths = {"user"})
     public Page<DonorProfile> findByIsAvailableTrueOrderByReliabilityScoreDesc(Pageable var1);
 
+    @EntityGraph(attributePaths = {"user"})
     public Page<DonorProfile> findAllByOrderByCreatedAtDesc(Pageable var1);
 
     @Query(value="SELECT d FROM DonorProfile d\nWHERE d.lastDonationDate < :dateThreshold\n   OR d.lastDonationDate IS NULL\n")

@@ -24,10 +24,14 @@ implements HealthIndicator {
             if (healthy) {
                 return Health.up().withDetail("message", (Object)"AI service is responsive").build();
             }
-            return Health.down().withDetail("message", (Object)"AI service returned unhealthy status").build();
+            return Health.status("CIRCUIT_OPEN")
+                    .withDetail("message", (Object)"AI service unavailable, database fallback active")
+                    .build();
         }
         catch (Exception e) {
-            return Health.down((Exception)e).build();
+            return Health.status("CIRCUIT_OPEN")
+                    .withDetail("message", (Object)("AI service unreachable: " + e.getMessage() + ", database fallback active"))
+                    .build();
         }
     }
 

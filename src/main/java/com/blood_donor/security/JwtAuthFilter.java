@@ -60,7 +60,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         return;
                     }
                 } catch (Exception e) {
-                    log.warn("Redis check failed in JwtAuthFilter, falling back gracefully: {}", e.getMessage());
+                    log.error("Redis token blacklist check failed, fail-closed policy enforced: {}", e.getMessage());
+                    response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"Authentication service temporarily unavailable (blacklist check failure)\"}");
+                    return;
                 }
             }
             try {

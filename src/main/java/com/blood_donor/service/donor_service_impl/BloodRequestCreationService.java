@@ -55,6 +55,12 @@ implements IBloodRequestCreationService {
     public BloodRequestResponse createRequest(CreateBloodRequestDto dto) {
         Long userId = this.securityUtils.getCurrentUserId();
         User currentUser = (User)this.userRepo.findById(userId).orElseThrow(() -> ApiException.notFound("User not found"));
+
+        java.util.List<BloodRequestStatus> activeStatuses = java.util.List.of(BloodRequestStatus.PENDING, BloodRequestStatus.ACTIVE, BloodRequestStatus.MATCHING);
+        if (this.requestRepo.existsByCreatedByIdAndStatusInAndBloodGroup(userId, activeStatuses, dto.getBloodGroup())) {
+            throw ApiException.badRequest("You already have an active blood request for blood group " + dto.getBloodGroup().getDisplayName());
+        }
+
         int expiryHours = this.getExpiryHours(dto.getUrgency());
         BloodRequest request = BloodRequest.builder().patientName(dto.getPatientName()).bloodGroup(dto.getBloodGroup()).hospitalName(dto.getHospitalName()).city(dto.getCity()).latitude(dto.getLatitude()).longitude(dto.getLongitude()).unitsRequired(dto.getUnitsRequired()).urgency(dto.getUrgency()).contactPhone(dto.getContactPhone()).additionalInfo(dto.getAdditionalInfo()).status(BloodRequestStatus.PENDING).createdBy(currentUser).expiredAt(LocalDateTime.now().plusHours(expiryHours)).build();
         BloodRequest saved = (BloodRequest)this.requestRepo.save(request);

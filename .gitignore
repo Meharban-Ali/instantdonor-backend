@@ -19,6 +19,8 @@ target/
 *.jar
 *.war
 *.ear
+backup_original_jar/
+scratch/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

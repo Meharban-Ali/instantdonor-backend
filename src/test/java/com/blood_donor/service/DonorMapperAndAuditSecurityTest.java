@@ -127,7 +127,7 @@ class DonorMapperAndAuditSecurityTest {
                 .status(BloodRequestStatus.ACTIVE)
                 .unitsRequired(2)
                 .build();
-        when(requestRepo.findById(50L)).thenReturn(Optional.of(request));
+        when(requestRepo.findByIdForUpdate(50L)).thenReturn(Optional.of(request));
 
         DonorRequestResponse existingResponse = DonorRequestResponse.builder()
                 .id(1L)

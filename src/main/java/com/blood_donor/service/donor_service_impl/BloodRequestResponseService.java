@@ -50,7 +50,12 @@ implements IBloodRequestResponseService {
     public BloodRequestResponse respondToRequest(RespondToRequestDto dto) {
         Long userId = this.securityUtils.getCurrentUserId();
         DonorProfile donor = this.donorRepo.findByUserId(userId).orElseThrow(() -> ApiException.badRequest("Please register as donor first"));
-        BloodRequest request = (BloodRequest)this.requestRepo.findById(dto.getRequestId()).orElseThrow(() -> ApiException.notFound("Blood request not found"));
+        BloodRequest request = this.requestRepo.findByIdForUpdate(dto.getRequestId()).orElseThrow(() -> ApiException.notFound("Blood request not found"));
+        
+        if (request.getCreatedBy() != null && request.getCreatedBy().getId().equals(userId)) {
+            throw ApiException.badRequest("You cannot accept or respond to your own blood request");
+        }
+
         if (request.getStatus().isTerminal()) {
             throw ApiException.badRequest("Cannot respond \u2014 request is: " + request.getStatus());
         }

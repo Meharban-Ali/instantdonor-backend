@@ -38,6 +38,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -88,6 +89,8 @@ public class BloodRequest {
     private LocalDateTime createdAt;
     @LastModifiedDate
     private LocalDateTime updatedAt;
+    @Version
+    private Long version;
 
     public boolean isExpiredByTime() {
         return this.expiredAt != null && LocalDateTime.now().isAfter(this.expiredAt);
@@ -208,6 +211,14 @@ public class BloodRequest {
 
     public LocalDateTime getUpdatedAt() {
         return this.updatedAt;
+    }
+
+    public Long getVersion() {
+        return this.version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 
     public void setId(Long id) {

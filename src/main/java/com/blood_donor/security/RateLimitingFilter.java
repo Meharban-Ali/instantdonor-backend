@@ -42,6 +42,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     @Value("${rate-limiting.capacity:100}")
     private long capacity;
 
+    @Value("${rate-limiting.login.ip-capacity:10}")
+    private long loginIpCapacity;
+
     @Value("${rate-limiting.refill-interval:60}")
     private long refillIntervalSeconds;
 
@@ -57,8 +60,8 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             @Nonnull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        log.debug("RateLimitingFilter: uri={}, enabled={}, capacity={}, refillInterval={}",
-                request.getRequestURI(), enabled, capacity, refillIntervalSeconds);
+        log.debug("RateLimitingFilter: uri={}, enabled={}, capacity={}, loginIpCapacity={}, refillInterval={}",
+                request.getRequestURI(), enabled, capacity, loginIpCapacity, refillIntervalSeconds);
 
         if (!enabled) {
             filterChain.doFilter(request, response);
@@ -67,29 +70,32 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
         String uri = request.getRequestURI().substring(request.getContextPath().length());
 
+        boolean isLogin = uri.equals("api/auth/login") || uri.equals("/api/auth/login");
         // We only rate limit specific authentication endpoints
-        boolean isAuthEndpoint = uri.equals("api/auth/login") || uri.equals("/api/auth/login") ||
+        boolean isAuthEndpoint = isLogin ||
                 uri.equals("api/auth/register") || uri.equals("/api/auth/register") ||
                 uri.equals("api/auth/forgot-password") || uri.equals("/api/auth/forgot-password") ||
                 uri.equals("api/auth/reset-password") || uri.equals("/api/auth/reset-password");
 
         if (isAuthEndpoint) {
             String ip = getClientIp(request);
+            long effectiveCapacity = isLogin ? loginIpCapacity : capacity;
+            String key = isLogin ? "rate:limit:login:ip:" + ip : "rate:limit:auth:" + ip;
             boolean allowed;
 
             if (redisTemplate != null) {
                 try {
-                    allowed = tryConsumeRedis(ip);
+                    allowed = tryConsumeRedis(key, effectiveCapacity);
                 } catch (Exception e) {
-                    log.warn("Redis rate limiting failed, falling back to local memory rate limiting. IP: {}. Error: {}", ip, e.getMessage());
-                    allowed = tryConsumeLocal(ip);
+                    log.warn("Redis rate limiting failed, falling back to local memory rate limiting. Key: {}. Error: {}", key, e.getMessage());
+                    allowed = tryConsumeLocal(key, effectiveCapacity);
                 }
             } else {
-                allowed = tryConsumeLocal(ip);
+                allowed = tryConsumeLocal(key, effectiveCapacity);
             }
 
             if (!allowed) {
-                log.warn("Rate limit exceeded for IP: {} on URI: {}", ip, uri);
+                log.warn("Rate limit exceeded for key: {} on URI: {}", key, uri);
                 response.setStatus(429); // HTTP 429 Too Many Requests
                 response.setContentType("application/json");
                 response.getWriter().write("{\"error\":\"Too many requests. Please try again later.\"}");
@@ -100,37 +106,36 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private boolean tryConsumeLocal(String ip) {
-        double refillRatePerMs = (double) capacity / (refillIntervalSeconds * 1000.0);
-        TokenBucket bucket = buckets.computeIfAbsent(ip, k -> new TokenBucket(capacity));
+    private boolean tryConsumeLocal(String key, long targetCapacity) {
+        double refillRatePerMs = (double) targetCapacity / (refillIntervalSeconds * 1000.0);
+        TokenBucket bucket = buckets.computeIfAbsent(key, k -> new TokenBucket(targetCapacity));
         return bucket.tryConsume(refillRatePerMs);
     }
 
-    private synchronized boolean tryConsumeRedis(String ip) {
-        String key = "rate:limit:auth:" + ip;
+    private synchronized boolean tryConsumeRedis(String key, long targetCapacity) {
         long now = System.currentTimeMillis();
-        double refillRatePerMs = (double) capacity / (refillIntervalSeconds * 1000.0);
+        double refillRatePerMs = (double) targetCapacity / (refillIntervalSeconds * 1000.0);
 
         Map<Object, Object> data = redisTemplate.opsForHash().entries(key);
         double tokens;
         long lastRefillTime;
 
         if (data == null || data.isEmpty()) {
-            tokens = capacity;
+            tokens = targetCapacity;
             lastRefillTime = now;
         } else {
             Object tokensObj = data.get("tokens");
             Object lastRefillObj = data.get("lastRefillTime");
 
             if (tokensObj == null || lastRefillObj == null) {
-                tokens = capacity;
+                tokens = targetCapacity;
                 lastRefillTime = now;
             } else {
                 try {
                     tokens = Double.parseDouble(tokensObj.toString());
                     lastRefillTime = Long.parseLong(lastRefillObj.toString());
                 } catch (NumberFormatException e) {
-                    tokens = capacity;
+                    tokens = targetCapacity;
                     lastRefillTime = now;
                 }
             }
@@ -139,7 +144,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         // Refill tokens
         long timePassed = now - lastRefillTime;
         if (timePassed > 0) {
-            tokens = Math.min(capacity, tokens + (timePassed * refillRatePerMs));
+            tokens = Math.min(targetCapacity, tokens + (timePassed * refillRatePerMs));
             lastRefillTime = now;
         }
 

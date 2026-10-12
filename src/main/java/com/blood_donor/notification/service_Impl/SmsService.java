@@ -82,15 +82,20 @@ implements ISmsService {
         }
         catch (Exception e) {
             if (attemptNumber < 2) {
-                log.warn("SMS attempt {} failed: to={}, error={}. Retrying...", new Object[]{attemptNumber + 1, formattedPhone, e.getMessage()});
-                try {
-                    Thread.sleep(1000L * (long)Math.pow(2.0, attemptNumber));
-                }
-                catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    return CompletableFuture.completedFuture(false);
-                }
-                return this.sendWithRetry(formattedPhone, preparedMessage, attemptNumber + 1);
+                long delayMs = 1000L * (long)Math.pow(2.0, attemptNumber);
+                log.warn("SMS attempt {} failed: to={}, error={}. Retrying asynchronously in {}ms...", new Object[]{attemptNumber + 1, formattedPhone, e.getMessage(), delayMs});
+                CompletableFuture<Boolean> future = new CompletableFuture<>();
+                CompletableFuture.delayedExecutor(delayMs, java.util.concurrent.TimeUnit.MILLISECONDS).execute(() -> {
+                    this.sendWithRetry(formattedPhone, preparedMessage, attemptNumber + 1)
+                            .whenComplete((result, ex) -> {
+                                if (ex != null) {
+                                    future.complete(false);
+                                } else {
+                                    future.complete(result);
+                                }
+                            });
+                });
+                return future;
             }
             log.error("SMS failed after {} attempts: to={}, error={}", new Object[]{3, formattedPhone, e.getMessage(), e});
             return CompletableFuture.completedFuture(false);
@@ -112,15 +117,24 @@ implements ISmsService {
         log.info("Bulk SMS: total={}, valid={}, preview={}", new Object[]{phoneNumbers.size(), validPhones.size(), this.truncatePreview(message)});
         List<CompletableFuture<Boolean>> futures = validPhones.stream().map(phone -> this.sendSms(phone, message)).toList();
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((res, ex) -> {
+            if (ex != null) {
+                log.error("Bulk SMS execution failed with error: {}", ex.getMessage(), ex);
+            }
             long successCount = futures.stream().filter(f -> {
                 try {
                     return Boolean.TRUE.equals(f.get());
                 }
-                catch (Exception ignored) {
+                catch (Exception e) {
+                    log.warn("Bulk SMS delivery tracking error for recipient: {}", e.getMessage());
                     return false;
                 }
             }).count();
-            log.info("Bulk SMS complete: sent={}/{}, preview={}", new Object[]{successCount, validPhones.size(), this.truncatePreview(message)});
+            long failCount = validPhones.size() - successCount;
+            if (failCount > 0) {
+                log.warn("Bulk SMS completed with partial failures: sent={}/{}, failed={}, preview={}", new Object[]{successCount, validPhones.size(), failCount, this.truncatePreview(message)});
+            } else {
+                log.info("Bulk SMS complete: sent={}/{}, preview={}", new Object[]{successCount, validPhones.size(), this.truncatePreview(message)});
+            }
         });
     }
 

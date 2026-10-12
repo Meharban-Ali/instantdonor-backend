@@ -38,8 +38,11 @@ implements IAdminInitializerService {
     public void initializeAdmin() {
         String password = this.adminProperties.getPassword();
         if (!StringUtils.hasText((String)password)) {
-            log.warn("\u26a0\ufe0f  ADMIN_PASSWORD not set! Using default \u2014 CHANGE IN PRODUCTION!");
-            password = "Admin@Default#2024";
+            password = System.getenv("ADMIN_PASSWORD");
+        }
+        if (!StringUtils.hasText((String)password)) {
+            log.warn("\u26a0\ufe0f ADMIN_PASSWORD not configured. Skipping default admin initialization for security. Set ADMIN_PASSWORD environment variable to initialize admin account.");
+            return;
         }
         if (this.userRepository.existsByEmail(this.adminProperties.getEmail())) {
             log.info("\u2139\ufe0f  Admin already exists: {}", (Object)this.adminProperties.getEmail());

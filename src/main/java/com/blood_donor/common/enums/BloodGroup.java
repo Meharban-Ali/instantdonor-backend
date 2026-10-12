@@ -46,11 +46,15 @@ public enum BloodGroup {
         if (displayName == null || displayName.isBlank()) {
             return Optional.empty();
         }
-        return Arrays.stream(BloodGroup.values()).filter(bg -> bg.displayName.equalsIgnoreCase(displayName.trim())).findFirst();
+        String trimmed = displayName.trim();
+        return Arrays.stream(BloodGroup.values())
+                .filter(bg -> bg.displayName.equalsIgnoreCase(trimmed) || bg.name().equalsIgnoreCase(trimmed))
+                .findFirst();
     }
 
     public static BloodGroup fromDisplayNameOrThrow(String displayName) {
-        return BloodGroup.fromDisplayName(displayName).orElseThrow(() -> new IllegalArgumentException("Invalid blood group: '" + displayName + "'. Valid values: " + Arrays.toString((Object[])BloodGroup.values())));
+        return BloodGroup.fromDisplayName(displayName)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid blood group: '" + displayName + "'. Valid values: " + Arrays.toString((Object[])BloodGroup.values())));
     }
 
     public static List<BloodGroup> getCompatibleDonors(BloodGroup recipient) {

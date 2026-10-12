@@ -223,6 +223,18 @@ def run_suite():
             elif name == "OWNER_CANCEL_REQUEST" and r_code == 200 and o_code == 200:
                 classification = "MATCH"
                 explanation = "Both servers successfully cancelled the blood request with 200 OK."
+            elif name == "ADMIN_SELF_DEMOTION_PREVENTION" and r_code in (400, 403) and o_code in (200, 400, 403):
+                classification = "INTENTIONAL FIX"
+                explanation = "Rebuilt app prevents admin from demoting themselves or removing last admin (Phase 3 hardening)."
+            elif name == "AUTH_DELETE_ACCOUNT_ME" and r_code == 200 and o_code in (404, 405):
+                classification = "INTENTIONAL FIX"
+                explanation = "Rebuilt app introduces DPDP compliance endpoint for user account anonymization/deletion; original jar lacked this endpoint."
+            elif name == "NOTIFICATION_UNAUTHORIZED_ALERT" and r_code == 403 and o_code == 403:
+                classification = "MATCH"
+                explanation = "Both servers correctly reject non-admin/hospital users with 403 Forbidden."
+            elif name in ("STATS_PUBLIC", "REQUEST_GET_ACTIVE", "REQUEST_GET_BY_ID", "REQUEST_GET_MY_REQUESTS", "DONOR_GET_PROFILE", "DONOR_CHECK_ELIGIBILITY", "DONOR_CHECK_AVAILABILITY", "ADMIN_DASHBOARD_AUTHORIZED", "ADMIN_GET_USERS", "ADMIN_GET_DONORS", "ADMIN_LOGIN", "AUTH_FORGOT_PASSWORD") and r_code == o_code:
+                classification = "MATCH"
+                explanation = f"Both servers returned identical HTTP {r_code} status."
             else:
                 classification = "REGRESSION"
                 explanation = f"Divergence detected: Rebuilt={r_code}, Orig={o_code}. Details: {r_norm} vs {o_norm}"
@@ -427,7 +439,120 @@ def run_suite():
         return c, b, h, {}
     record_step("OWNER_CANCEL_REQUEST", "Legitimate creator cancels blood request", step_owner_cancel)
 
-    # Step 18: Token Refresh with valid refresh token
+    # Step 18: Donor Profile Fetch
+    def step_donor_profile(env, base, state):
+        tok = state["tokens"].get("donor_access", "")
+        c, b, h = http_request(base, "GET", "/api/donor/profile", headers={"Authorization": f"Bearer {tok}"})
+        return c, b, h, {}
+    record_step("DONOR_GET_PROFILE", "Fetch donor medical profile for authenticated donor", step_donor_profile)
+
+    # Step 19: Check Donor Eligibility
+    def step_donor_eligibility(env, base, state):
+        tok = state["tokens"].get("donor_access", "")
+        c, b, h = http_request(base, "GET", "/api/donor/eligibility", headers={"Authorization": f"Bearer {tok}"})
+        return c, b, h, {}
+    record_step("DONOR_CHECK_ELIGIBILITY", "Check donor donation eligibility status", step_donor_eligibility)
+
+    # Step 20: Check Donor Availability
+    def step_donor_availability(env, base, state):
+        tok = state["tokens"].get("donor_access", "")
+        c, b, h = http_request(base, "GET", "/api/donor/availability", headers={"Authorization": f"Bearer {tok}"})
+        return c, b, h, {}
+    record_step("DONOR_CHECK_AVAILABILITY", "Check donor availability toggle status", step_donor_availability)
+
+    # Step 21: Donor Search Nearby
+    def step_donor_nearby(env, base, state):
+        tok = state["tokens"].get("donor_access", "")
+        c, b, h = http_request(base, "GET", "/api/donor/search/nearby?latitude=18.9250&longitude=72.8250&radiusKm=25&bloodGroup=O_POSITIVE", headers={"Authorization": f"Bearer {tok}"})
+        return c, b, h, {}
+    record_step("DONOR_SEARCH_NEARBY", "Geo-radius search for nearby donors", step_donor_nearby)
+
+    # Step 22: Active Blood Requests List
+    def step_req_active(env, base, state):
+        c, b, h = http_request(base, "GET", "/api/request/active?page=0&size=10")
+        return c, b, h, {}
+    record_step("REQUEST_GET_ACTIVE", "Public active blood requests listing (paginated)", step_req_active)
+
+    # Step 23: Blood Request Detail by ID
+    def step_req_by_id(env, base, state):
+        req_id = state["ids"].get("request_id", 1)
+        tok = state["tokens"].get("recip_access", "")
+        c, b, h = http_request(base, "GET", f"/api/request/{req_id}", headers={"Authorization": f"Bearer {tok}"})
+        return c, b, h, {}
+    record_step("REQUEST_GET_BY_ID", "Fetch specific blood request by ID", step_req_by_id)
+
+    # Step 24: My Blood Requests
+    def step_req_my(env, base, state):
+        tok = state["tokens"].get("recip_access", "")
+        c, b, h = http_request(base, "GET", "/api/request/my-requests?page=0&size=10", headers={"Authorization": f"Bearer {tok}"})
+        return c, b, h, {}
+    record_step("REQUEST_GET_MY_REQUESTS", "Fetch requester's own blood request history", step_req_my)
+
+    # Step 25: Public Platform Stats
+    def step_public_stats(env, base, state):
+        c, b, h = http_request(base, "GET", "/api/stats/public")
+        return c, b, h, {}
+    record_step("STATS_PUBLIC", "Public platform statistics and donor counts", step_public_stats)
+
+    # Step 26: Forgot Password Request
+    def step_forgot_pw(env, base, state):
+        r_email = emails[env]["recip"]
+        c, b, h = http_request(base, "POST", "/api/auth/forgot-password", body={"email": r_email})
+        return c, b, h, {}
+    record_step("AUTH_FORGOT_PASSWORD", "Initiate forgot password reset link generation", step_forgot_pw)
+
+    # Step 27: Admin Login
+    def step_admin_login(env, base, state):
+        c, b, h = http_request(base, "POST", "/api/auth/login", body={"email": "admin@blooddonor.com", "password": "Admin@StrongPass123!"})
+        if c == 200 and isinstance(b, dict) and "data" in b:
+            state["tokens"]["admin_access"] = b["data"].get("accessToken")
+            state["ids"]["admin_id"] = b["data"].get("userId")
+        return c, b, h, {}
+    record_step("ADMIN_LOGIN", "Authenticate with system administrator credentials", step_admin_login)
+
+    # Step 28: Admin Dashboard Authorized
+    def step_admin_dashboard(env, base, state):
+        tok = state["tokens"].get("admin_access", "")
+        c, b, h = http_request(base, "GET", "/api/admin/dashboard", headers={"Authorization": f"Bearer {tok}"})
+        return c, b, h, {}
+    record_step("ADMIN_DASHBOARD_AUTHORIZED", "Fetch comprehensive admin dashboard with ADMIN role", step_admin_dashboard)
+
+    # Step 29: Admin List Users
+    def step_admin_users(env, base, state):
+        tok = state["tokens"].get("admin_access", "")
+        c, b, h = http_request(base, "GET", "/api/admin/users?page=0&size=10", headers={"Authorization": f"Bearer {tok}"})
+        return c, b, h, {}
+    record_step("ADMIN_GET_USERS", "Admin paginated user list with role filters", step_admin_users)
+
+    # Step 30: Admin List Donors
+    def step_admin_donors(env, base, state):
+        tok = state["tokens"].get("admin_access", "")
+        c, b, h = http_request(base, "GET", "/api/admin/donors?page=0&size=10", headers={"Authorization": f"Bearer {tok}"})
+        return c, b, h, {}
+    record_step("ADMIN_GET_DONORS", "Admin paginated donor registry with reliability scores", step_admin_donors)
+
+    # Step 31: Admin Prevent Self-Demotion
+    def step_admin_demote_self(env, base, state):
+        tok = state["tokens"].get("admin_access", "")
+        admin_id = state["ids"].get("admin_id", 1)
+        c, b, h = http_request(base, "PUT", f"/api/admin/users/{admin_id}/role", body={"role": "USER", "reason": "Self-demotion test"}, headers={"Authorization": f"Bearer {tok}"})
+        return c, b, h, {}
+    record_step("ADMIN_SELF_DEMOTION_PREVENTION", "Admin attempts to demote own account (must be prevented)", step_admin_demote_self)
+
+    # Step 32: Unauthorized Alert Trigger
+    def step_alert_unauth(env, base, state):
+        tok = state["tokens"].get("recip_access", "")
+        c, b, h = http_request(base, "POST", "/api/notification/alert/1", headers={"Authorization": f"Bearer {tok}"})
+        return c, b, h, {}
+    record_step("NOTIFICATION_UNAUTHORIZED_ALERT", "Regular user attempts to trigger notification alert (403)", step_alert_unauth)
+
+    # Step 33: AI Matching Service Health
+    def step_ai_health(env, base, state):
+        c, b, h = http_request(base, "GET", "/api/ai/health")
+        return c, b, h, {}
+    record_step("AI_HEALTH_CHECK", "AI service connectivity probe", step_ai_health)
+
+    # Step 34: Token Refresh with valid refresh token
     def step_token_refresh(env, base, state):
         old_ref = state["tokens"].get("donor_refresh", "")
         state["tokens"]["saved_old_refresh"] = old_ref
@@ -439,7 +564,7 @@ def run_suite():
         return c, b, h, {}
     record_step("TOKEN_REFRESH_ROTATION", "Refresh access token using valid refresh token", step_token_refresh)
 
-    # Step 19: Reuse of old rotated refresh token
+    # Step 35: Reuse of old rotated refresh token
     def step_old_refresh_reuse(env, base, state):
         old_ref = state["tokens"].get("saved_old_refresh", "")
         payload = {"refreshToken": old_ref}
@@ -447,7 +572,7 @@ def run_suite():
         return c, b, h, {}
     record_step("OLD_REFRESH_TOKEN_REUSE", "Attempt to reuse previously rotated refresh token", step_old_refresh_reuse)
 
-    # Step 20: Logout
+    # Step 36: Logout
     def step_logout(env, base, state):
         tok = state["tokens"].get("donor_access", "")
         ref = state["tokens"].get("donor_refresh", "")
@@ -456,12 +581,19 @@ def run_suite():
         return c, b, h, {}
     record_step("LOGOUT_USER", "User logout and token revocation", step_logout)
 
-    # Step 21: Post-logout token reuse
+    # Step 37: Post-logout token reuse
     def step_post_logout_reuse(env, base, state):
         tok = state["tokens"].get("donor_access", "")
         c, b, h = http_request(base, "GET", "/api/auth/me", headers={"Authorization": f"Bearer {tok}"})
         return c, b, h, {}
     record_step("POST_LOGOUT_TOKEN_REUSE", "Verify blacklisted access token is rejected on reuse (401)", step_post_logout_reuse)
+
+    # Step 38: DPDP Account Deletion
+    def step_delete_account(env, base, state):
+        tok = state["tokens"].get("recip_access", "")
+        c, b, h = http_request(base, "DELETE", "/api/auth/me", headers={"Authorization": f"Bearer {tok}"})
+        return c, b, h, {}
+    record_step("AUTH_DELETE_ACCOUNT_ME", "DPDP compliance: User requests personal data deletion/anonymization", step_delete_account)
 
     # Summarize Results
     print("\n" + "=" * 80)

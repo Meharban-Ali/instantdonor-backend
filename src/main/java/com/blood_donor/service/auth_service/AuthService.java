@@ -44,6 +44,8 @@ public class AuthService {
     private RedisTemplate<String, Object> redisTemplate;
     @Autowired(required=false)
     private com.blood_donor.repository.donor_repository.request_repository.BloodRequestRepository bloodRequestRepository;
+    @Autowired(required=false)
+    private com.blood_donor.monitoring.CustomMetricsService customMetricsService;
     @Value(value="${app.reset-token.expiry-minutes:30}")
     private int resetTokenExpiryMinutes;
     @Value(value="${app.frontend.url:http://localhost:5173}")
@@ -76,10 +78,16 @@ public class AuthService {
         if (!normalizedEmail.isEmpty()) {
             if (this.isAccountLocked(normalizedEmail)) {
                 log.warn("Login blocked: account temporarily locked for email: {}", com.blood_donor.utils.PiiMasker.maskEmail(normalizedEmail));
+                if (this.customMetricsService != null) {
+                    this.customMetricsService.recordRateLimit429();
+                }
                 throw ApiException.tooManyRequests("Account temporarily locked due to repeated failed logins. Please try again after 15 minutes or reset your password.");
             }
             if (!this.checkEmailRateLimit(normalizedEmail)) {
                 log.warn("Rate limit exceeded for login email: {}", com.blood_donor.utils.PiiMasker.maskEmail(normalizedEmail));
+                if (this.customMetricsService != null) {
+                    this.customMetricsService.recordRateLimit429();
+                }
                 throw ApiException.tooManyRequests("Too many login attempts for this account. Please try again later.");
             }
         }
@@ -87,6 +95,9 @@ public class AuthService {
         try {
             this.authenticationManager.authenticate((Authentication)new UsernamePasswordAuthenticationToken((Object)request.getEmail(), (Object)request.getPassword()));
         } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            if (this.customMetricsService != null) {
+                this.customMetricsService.recordAuthFailure();
+            }
             if (!normalizedEmail.isEmpty()) {
                 this.recordFailedLogin(normalizedEmail);
             }

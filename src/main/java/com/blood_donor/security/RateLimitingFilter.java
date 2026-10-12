@@ -51,6 +51,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     @Autowired(required = false)
     private RedisTemplate<String, Object> redisTemplate;
 
+    @Autowired(required = false)
+    private com.blood_donor.monitoring.CustomMetricsService customMetricsService;
+
     private final ConcurrentHashMap<String, TokenBucket> buckets = new ConcurrentHashMap<>();
 
     @Override
@@ -96,6 +99,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
             if (!allowed) {
                 log.warn("Rate limit exceeded for key: {} on URI: {}", key, uri);
+                if (this.customMetricsService != null) {
+                    this.customMetricsService.recordRateLimit429();
+                }
                 SecurityResponseHelper.writeError(response, 429, "Too many requests. Please try again later.");
                 return;
             }

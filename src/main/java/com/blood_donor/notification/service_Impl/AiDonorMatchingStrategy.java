@@ -11,6 +11,7 @@ import com.blood_donor.model.entity.DonorProfile;
 import com.blood_donor.notification.properties.NotificationProperties;
 import com.blood_donor.notification.service.DonorMatchingStrategy;
 import com.blood_donor.repository.donor_profile_repo.DonorProfileRepository;
+import com.blood_donor.monitoring.CustomMetricsService;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ implements DonorMatchingStrategy {
     private final IAiMatchingService aiMatchingService;
     private final DonorProfileRepository donorRepo;
     private final NotificationProperties notificationProperties;
+    private final CustomMetricsService customMetricsService;
 
     @Override
     public List<AiDonorResult> findDonors(BloodRequest request, int limit) {
@@ -30,6 +32,9 @@ implements DonorMatchingStrategy {
             return this.findByAiMatching(request, limit);
         }
         log.info("No location for request={} \u2014 using city fallback", (Object)request.getId());
+        if (this.customMetricsService != null) {
+            this.customMetricsService.recordAiFallback();
+        }
         return this.findByCityFallback(request, limit);
     }
 
@@ -46,6 +51,9 @@ implements DonorMatchingStrategy {
         }
         catch (Exception e) {
             log.warn("AI matching failed: requestId={}, error={}. Falling back to city search", (Object)request.getId(), (Object)e.getMessage());
+            if (this.customMetricsService != null) {
+                this.customMetricsService.recordAiFallback();
+            }
             return this.findByCityFallback(request, limit);
         }
     }
@@ -106,10 +114,11 @@ implements DonorMatchingStrategy {
         return phone.substring(0, 2) + "*".repeat(phone.length() - 6) + phone.substring(phone.length() - 4);
     }
 
-    public AiDonorMatchingStrategy(IAiMatchingService aiMatchingService, DonorProfileRepository donorRepo, NotificationProperties notificationProperties) {
+    public AiDonorMatchingStrategy(IAiMatchingService aiMatchingService, DonorProfileRepository donorRepo, NotificationProperties notificationProperties, CustomMetricsService customMetricsService) {
         this.aiMatchingService = aiMatchingService;
         this.donorRepo = donorRepo;
         this.notificationProperties = notificationProperties;
+        this.customMetricsService = customMetricsService;
     }
 }
 

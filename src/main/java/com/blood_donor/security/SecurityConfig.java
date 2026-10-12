@@ -48,7 +48,8 @@ public class SecurityConfig {
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/api-docs/**",
-            "/actuator/health"
+            "/actuator/health",
+            "/actuator/info"
     };
 
     // ✅ FIX: Field hataya — @Bean method directly use hoga

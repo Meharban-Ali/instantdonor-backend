@@ -23,6 +23,7 @@ implements ISmsService {
     private final TwilioClientFactory twilioClientFactory;
     private final PhoneNumberFormatter phoneFormatter;
     private final SmsMessageBuilder messageBuilder;
+    private final com.blood_donor.monitoring.CustomMetricsService customMetricsService;
     private static final int MAX_RETRY_ATTEMPTS = 2;
     private static final long RETRY_DELAY_MS = 1000L;
 
@@ -66,6 +67,9 @@ implements ISmsService {
         try {
             Message smsMessage = (Message)Message.creator((PhoneNumber)new PhoneNumber(formattedPhone), (PhoneNumber)new PhoneNumber(this.twilioProperties.getPhoneNumber()), (String)preparedMessage).create();
             log.info("SMS sent: to={}, sid={}, attempt={}", com.blood_donor.utils.PiiMasker.maskPhone(formattedPhone), smsMessage.getSid(), attemptNumber + 1);
+            if (this.customMetricsService != null) {
+                this.customMetricsService.recordSmsSuccess();
+            }
             return CompletableFuture.completedFuture(true);
         }
         catch (Exception e) {
@@ -86,6 +90,9 @@ implements ISmsService {
                 return future;
             }
             log.error("SMS failed after {} attempts: to={}, error={}", 3, com.blood_donor.utils.PiiMasker.maskPhone(formattedPhone), e.getMessage(), e);
+            if (this.customMetricsService != null) {
+                this.customMetricsService.recordSmsFailure();
+            }
             return CompletableFuture.completedFuture(false);
         }
     }
@@ -138,11 +145,12 @@ implements ISmsService {
         return message.length() > 50 ? message.substring(0, 47) + "..." : message;
     }
 
-    public SmsService(TwilioProperties twilioProperties, TwilioClientFactory twilioClientFactory, PhoneNumberFormatter phoneFormatter, SmsMessageBuilder messageBuilder) {
+    public SmsService(TwilioProperties twilioProperties, TwilioClientFactory twilioClientFactory, PhoneNumberFormatter phoneFormatter, SmsMessageBuilder messageBuilder, com.blood_donor.monitoring.CustomMetricsService customMetricsService) {
         this.twilioProperties = twilioProperties;
         this.twilioClientFactory = twilioClientFactory;
         this.phoneFormatter = phoneFormatter;
         this.messageBuilder = messageBuilder;
+        this.customMetricsService = customMetricsService;
     }
 }
 

@@ -1,10 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.springframework.boot.context.properties.ConfigurationProperties
- *  org.springframework.stereotype.Component
- */
 package com.blood_donor.config.properties;
 
 import java.util.HashMap;

@@ -1,30 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.apache.hc.client5.http.classic.HttpClient
- *  org.apache.hc.client5.http.config.RequestConfig
- *  org.apache.hc.client5.http.impl.classic.CloseableHttpClient
- *  org.apache.hc.client5.http.impl.classic.HttpClients
- *  org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager
- *  org.apache.hc.client5.http.io.HttpClientConnectionManager
- *  org.apache.hc.core5.util.Timeout
- *  org.slf4j.Logger
- *  org.slf4j.LoggerFactory
- *  org.springframework.context.annotation.Bean
- *  org.springframework.context.annotation.Configuration
- *  org.springframework.http.client.BufferingClientHttpRequestFactory
- *  org.springframework.http.client.ClientHttpRequestFactory
- *  org.springframework.http.client.HttpComponentsClientHttpRequestFactory
- *  org.springframework.retry.RetryPolicy
- *  org.springframework.retry.annotation.EnableRetry
- *  org.springframework.retry.backoff.BackOffPolicy
- *  org.springframework.retry.backoff.FixedBackOffPolicy
- *  org.springframework.retry.policy.SimpleRetryPolicy
- *  org.springframework.retry.support.RetryTemplate
- *  org.springframework.web.client.ResponseErrorHandler
- *  org.springframework.web.client.RestTemplate
- */
 package com.blood_donor.ai_service.config;
 
 import com.blood_donor.ai_service.config.AiServiceErrorHandler;

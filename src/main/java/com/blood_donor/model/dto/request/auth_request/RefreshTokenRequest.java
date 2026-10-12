@@ -1,9 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  jakarta.validation.constraints.NotBlank
- */
 package com.blood_donor.model.dto.request.auth_request;
 
 import jakarta.validation.constraints.NotBlank;

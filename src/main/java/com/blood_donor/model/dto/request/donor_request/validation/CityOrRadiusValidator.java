@@ -1,10 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  jakarta.validation.ConstraintValidator
- *  jakarta.validation.ConstraintValidatorContext
- */
 package com.blood_donor.model.dto.request.donor_request.validation;
 
 import com.blood_donor.model.dto.request.donor_request.DonorSearchRequest;

@@ -1,14 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.springframework.data.domain.Page
- *  org.springframework.data.domain.Pageable
- *  org.springframework.data.jpa.repository.JpaRepository
- *  org.springframework.data.jpa.repository.Query
- *  org.springframework.data.repository.query.Param
- *  org.springframework.stereotype.Repository
- */
 package com.blood_donor.repository.donor_repository;
 
 import com.blood_donor.common.enums.BloodGroup;
@@ -41,7 +30,7 @@ extends JpaRepository<DonationHistory, Long> {
 
     public long countByDonorProfileIdAndDonationDateAfter(Long var1, LocalDateTime var2);
 
-    public long countByBloodGroup(BloodGroup var1);
+    public long countByBloodGroup(BloodGroup bloodGroup);
 
     public long countByBloodGroupAndDonationDateAfter(BloodGroup var1, LocalDateTime var2);
 

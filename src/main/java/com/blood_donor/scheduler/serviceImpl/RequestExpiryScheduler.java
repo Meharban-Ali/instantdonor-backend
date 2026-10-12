@@ -1,13 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.slf4j.Logger
- *  org.slf4j.LoggerFactory
- *  org.springframework.cache.annotation.CacheEvict
- *  org.springframework.scheduling.annotation.Scheduled
- *  org.springframework.stereotype.Component
- */
 package com.blood_donor.scheduler.serviceImpl;
 
 import com.blood_donor.scheduler.service.ISchedulerService;

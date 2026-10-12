@@ -1,13 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.springframework.data.jpa.repository.JpaRepository
- *  org.springframework.data.jpa.repository.Modifying
- *  org.springframework.data.jpa.repository.Query
- *  org.springframework.data.repository.query.Param
- *  org.springframework.stereotype.Repository
- */
 package com.blood_donor.repository.user_repository;
 
 import com.blood_donor.model.entity.PasswordResetToken;

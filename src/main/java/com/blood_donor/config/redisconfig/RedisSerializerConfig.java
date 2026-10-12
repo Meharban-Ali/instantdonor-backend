@@ -1,19 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  com.fasterxml.jackson.annotation.JsonTypeInfo$As
- *  com.fasterxml.jackson.databind.Module
- *  com.fasterxml.jackson.databind.ObjectMapper
- *  com.fasterxml.jackson.databind.ObjectMapper$DefaultTyping
- *  com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator
- *  com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator
- *  com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
- *  org.springframework.context.annotation.Bean
- *  org.springframework.context.annotation.Configuration
- *  org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer
- *  org.springframework.data.redis.serializer.StringRedisSerializer
- */
 package com.blood_donor.config.redisconfig;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

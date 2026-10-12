@@ -1,31 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  jakarta.persistence.CascadeType
- *  jakarta.persistence.CollectionTable
- *  jakarta.persistence.Column
- *  jakarta.persistence.ElementCollection
- *  jakarta.persistence.Entity
- *  jakarta.persistence.EntityListeners
- *  jakarta.persistence.EnumType
- *  jakarta.persistence.Enumerated
- *  jakarta.persistence.FetchType
- *  jakarta.persistence.GeneratedValue
- *  jakarta.persistence.GenerationType
- *  jakarta.persistence.Id
- *  jakarta.persistence.Index
- *  jakarta.persistence.JoinColumn
- *  jakarta.persistence.OneToOne
- *  jakarta.persistence.Table
- *  jakarta.validation.constraints.Email
- *  jakarta.validation.constraints.NotBlank
- *  jakarta.validation.constraints.Pattern
- *  jakarta.validation.constraints.Size
- *  org.springframework.data.annotation.CreatedDate
- *  org.springframework.data.annotation.LastModifiedDate
- *  org.springframework.data.jpa.domain.support.AuditingEntityListener
- */
 package com.blood_donor.model.entity;
 
 import com.blood_donor.common.enums.Role;

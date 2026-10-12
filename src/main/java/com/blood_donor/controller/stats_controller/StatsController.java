@@ -1,14 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  io.swagger.v3.oas.annotations.Operation
- *  io.swagger.v3.oas.annotations.tags.Tag
- *  org.springframework.cache.annotation.Cacheable
- *  org.springframework.web.bind.annotation.GetMapping
- *  org.springframework.web.bind.annotation.RequestMapping
- *  org.springframework.web.bind.annotation.RestController
- */
 package com.blood_donor.controller.stats_controller;
 
 import com.blood_donor.model.dto.request.blood_request.BloodRequestStatus;

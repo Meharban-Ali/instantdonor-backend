@@ -1,9 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  jakarta.validation.Valid
- */
 package com.blood_donor.model.dto.request.donor_request;
 
 import com.blood_donor.common.enums.BloodGroup;

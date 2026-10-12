@@ -1,6 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- */
 package com.blood_donor.model.dto.response.donor_response;
 
 import java.math.BigDecimal;

@@ -1,11 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  jakarta.validation.constraints.DecimalMax
- *  jakarta.validation.constraints.DecimalMin
- *  jakarta.validation.constraints.NotNull
- */
 package com.blood_donor.model.dto.request.donor_request;
 
 import jakarta.validation.constraints.DecimalMax;

@@ -1,12 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.springframework.data.domain.Page
- *  org.springframework.data.domain.Pageable
- *  org.springframework.data.jpa.repository.Query
- *  org.springframework.data.repository.query.Param
- */
 package com.blood_donor.repository.donor_repository;
 
 import com.blood_donor.common.enums.BloodGroup;
@@ -26,6 +17,6 @@ public interface DonorSearchRepository {
     public List<DonorProfile> findNearbyCompatibleDonors(@Param(value="lat") double var1, @Param(value="lng") double var3, @Param(value="radiusKm") double var5, @Param(value="bloodGroups") List<String> var7, @Param(value="limitCount") int var8);
 
     @Query(value="SELECT (6371 * acos(\n    LEAST(1.0,\n        cos(radians(:lat1)) * cos(radians(:lat2)) *\n        cos(radians(:lng2) - radians(:lng1)) +\n        sin(radians(:lat1)) * sin(radians(:lat2))\n    )\n)) FROM DUAL\n", nativeQuery=true)
-    public Double calculateDistanceKm(@Param(value="lat1") double var1, @Param(value="lng1") double var3, @Param(value="lat2") double var5, @Param(value="lng2") double var7);
+    public Double calculateDistanceKm(@Param(value="lat1") double lat1, @Param(value="lng1") double lng1, @Param(value="lat2") double lat2, @Param(value="lng2") double lng2);
 }
 

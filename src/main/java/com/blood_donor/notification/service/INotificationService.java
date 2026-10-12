@@ -1,18 +1,15 @@
-/*
- * Decompiled with CFR 0.152.
- */
 package com.blood_donor.notification.service;
 
 import com.blood_donor.model.entity.BloodRequest;
 import com.blood_donor.model.entity.DonorProfile;
 
 public interface INotificationService {
-    public void sendEmergencyAlert(BloodRequest var1);
+    public void sendEmergencyAlert(BloodRequest request);
 
-    public void sendDonorAcceptedConfirmation(DonorProfile var1, BloodRequest var2);
+    public void sendDonorAcceptedConfirmation(DonorProfile donor, BloodRequest request);
 
-    public void sendRequestFulfilledNotification(BloodRequest var1);
+    public void sendRequestFulfilledNotification(BloodRequest request);
 
-    public void sendPasswordResetEmail(String var1, String var2, String var3);
+    public void sendPasswordResetEmail(String to, String name, String resetToken);
 }
 

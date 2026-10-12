@@ -1,16 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.slf4j.Logger
- *  org.slf4j.LoggerFactory
- *  org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler
- *  org.springframework.context.annotation.Bean
- *  org.springframework.context.annotation.Configuration
- *  org.springframework.scheduling.annotation.AsyncConfigurer
- *  org.springframework.scheduling.annotation.EnableAsync
- *  org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
- */
 package com.blood_donor.notification.config;
 
 import com.blood_donor.exception.AsyncExceptionHandler;

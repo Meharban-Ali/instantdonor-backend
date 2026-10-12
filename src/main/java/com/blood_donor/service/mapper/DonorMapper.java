@@ -1,9 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.springframework.stereotype.Component
- */
 package com.blood_donor.service.mapper;
 
 import com.blood_donor.model.dto.response.donor_response.BloodInfo;

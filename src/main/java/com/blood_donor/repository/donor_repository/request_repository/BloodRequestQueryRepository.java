@@ -1,12 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.springframework.data.domain.Page
- *  org.springframework.data.domain.Pageable
- *  org.springframework.data.jpa.repository.Query
- *  org.springframework.data.repository.query.Param
- */
 package com.blood_donor.repository.donor_repository.request_repository;
 
 import com.blood_donor.common.enums.BloodGroup;

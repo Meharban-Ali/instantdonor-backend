@@ -1,19 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  jakarta.mail.MessagingException
- *  jakarta.mail.internet.MimeMessage
- *  org.slf4j.Logger
- *  org.slf4j.LoggerFactory
- *  org.springframework.mail.SimpleMailMessage
- *  org.springframework.mail.javamail.JavaMailSender
- *  org.springframework.scheduling.annotation.Async
- *  org.springframework.stereotype.Service
- *  org.thymeleaf.TemplateEngine
- *  org.thymeleaf.context.Context
- *  org.thymeleaf.context.IContext
- */
 package com.blood_donor.notification.service_Impl;
 
 import com.blood_donor.notification.properties.MailProperties;

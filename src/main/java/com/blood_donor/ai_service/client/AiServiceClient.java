@@ -1,19 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.slf4j.Logger
- *  org.slf4j.LoggerFactory
- *  org.springframework.beans.factory.annotation.Qualifier
- *  org.springframework.http.HttpEntity
- *  org.springframework.http.HttpHeaders
- *  org.springframework.http.MediaType
- *  org.springframework.retry.support.RetryTemplate
- *  org.springframework.stereotype.Component
- *  org.springframework.util.MultiValueMap
- *  org.springframework.web.client.ResourceAccessException
- *  org.springframework.web.client.RestTemplate
- */
 package com.blood_donor.ai_service.client;
 
 import com.blood_donor.ai_service.dto.request.AiDemandRequest;

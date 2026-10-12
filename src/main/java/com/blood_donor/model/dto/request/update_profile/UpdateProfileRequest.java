@@ -1,10 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  jakarta.validation.constraints.Pattern
- *  jakarta.validation.constraints.Size
- */
 package com.blood_donor.model.dto.request.update_profile;
 
 import jakarta.validation.constraints.Pattern;

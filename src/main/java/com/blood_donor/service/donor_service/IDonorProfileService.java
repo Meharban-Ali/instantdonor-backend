@@ -1,6 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- */
 package com.blood_donor.service.donor_service;
 
 import com.blood_donor.model.dto.request.donor_request.DonorUpdateRequest;

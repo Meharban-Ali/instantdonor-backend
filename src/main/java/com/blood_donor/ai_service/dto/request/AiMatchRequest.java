@@ -1,16 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  com.fasterxml.jackson.annotation.JsonInclude
- *  com.fasterxml.jackson.annotation.JsonInclude$Include
- *  com.fasterxml.jackson.annotation.JsonProperty
- *  jakarta.validation.constraints.DecimalMax
- *  jakarta.validation.constraints.DecimalMin
- *  jakarta.validation.constraints.Max
- *  jakarta.validation.constraints.Min
- *  jakarta.validation.constraints.NotNull
- */
 package com.blood_donor.ai_service.dto.request;
 
 import com.blood_donor.common.enums.BloodGroup;

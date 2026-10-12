@@ -1,22 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.slf4j.Logger
- *  org.slf4j.LoggerFactory
- *  org.springframework.cache.CacheManager
- *  org.springframework.cache.annotation.EnableCaching
- *  org.springframework.context.annotation.Bean
- *  org.springframework.context.annotation.Configuration
- *  org.springframework.context.annotation.Profile
- *  org.springframework.data.redis.cache.RedisCacheConfiguration
- *  org.springframework.data.redis.cache.RedisCacheManager
- *  org.springframework.data.redis.connection.RedisConnectionFactory
- *  org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer
- *  org.springframework.data.redis.serializer.RedisSerializationContext$SerializationPair
- *  org.springframework.data.redis.serializer.RedisSerializer
- *  org.springframework.data.redis.serializer.StringRedisSerializer
- */
 package com.blood_donor.config.redisconfig;
 
 import com.blood_donor.config.properties.RedisCacheProperties;

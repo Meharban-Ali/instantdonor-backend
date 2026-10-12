@@ -1,11 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.springframework.boot.actuate.health.Health
- *  org.springframework.boot.actuate.health.HealthIndicator
- *  org.springframework.stereotype.Component
- */
 package com.blood_donor.ai_service.config;
 
 import com.blood_donor.ai_service.service.IAiMatchingService;

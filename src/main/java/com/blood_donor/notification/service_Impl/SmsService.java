@@ -1,15 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  com.twilio.rest.api.v2010.account.Message
- *  com.twilio.type.PhoneNumber
- *  jakarta.annotation.PostConstruct
- *  org.slf4j.Logger
- *  org.slf4j.LoggerFactory
- *  org.springframework.scheduling.annotation.Async
- *  org.springframework.stereotype.Service
- */
 package com.blood_donor.notification.service_Impl;
 
 import com.blood_donor.notification.properties.TwilioProperties;

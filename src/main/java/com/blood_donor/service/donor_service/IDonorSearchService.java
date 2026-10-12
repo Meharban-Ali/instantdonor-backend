@@ -1,9 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.springframework.data.domain.Page
- */
 package com.blood_donor.service.donor_service;
 
 import com.blood_donor.model.dto.request.donor_request.DonorSearchRequest;

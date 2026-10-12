@@ -1,10 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  com.fasterxml.jackson.annotation.JsonInclude
- *  com.fasterxml.jackson.annotation.JsonInclude$Include
- */
 package com.blood_donor.model.dto.response.api_response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;

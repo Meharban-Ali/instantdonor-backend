@@ -1,21 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  io.jsonwebtoken.Claims
- *  org.slf4j.Logger
- *  org.slf4j.LoggerFactory
- *  org.springframework.beans.factory.annotation.Autowired
- *  org.springframework.beans.factory.annotation.Value
- *  org.springframework.data.redis.core.RedisTemplate
- *  org.springframework.http.HttpStatus
- *  org.springframework.security.authentication.AuthenticationManager
- *  org.springframework.security.authentication.UsernamePasswordAuthenticationToken
- *  org.springframework.security.core.Authentication
- *  org.springframework.security.crypto.password.PasswordEncoder
- *  org.springframework.stereotype.Service
- *  org.springframework.transaction.annotation.Transactional
- */
 package com.blood_donor.service.auth_service;
 
 import com.blood_donor.common.enums.Role;

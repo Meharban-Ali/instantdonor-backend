@@ -1,14 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.slf4j.Logger
- *  org.slf4j.LoggerFactory
- *  org.springframework.security.crypto.password.PasswordEncoder
- *  org.springframework.stereotype.Service
- *  org.springframework.transaction.annotation.Transactional
- *  org.springframework.util.StringUtils
- */
 package com.blood_donor.initializer.serviceimpl;
 
 import com.blood_donor.common.enums.Role;

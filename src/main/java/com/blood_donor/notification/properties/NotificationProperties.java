@@ -1,13 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  jakarta.validation.constraints.Max
- *  jakarta.validation.constraints.Min
- *  org.springframework.boot.context.properties.ConfigurationProperties
- *  org.springframework.stereotype.Component
- *  org.springframework.validation.annotation.Validated
- */
 package com.blood_donor.notification.properties;
 
 import jakarta.validation.constraints.Max;

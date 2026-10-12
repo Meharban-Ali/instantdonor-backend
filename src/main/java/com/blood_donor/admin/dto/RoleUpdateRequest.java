@@ -1,9 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  jakarta.validation.constraints.NotNull
- */
 package com.blood_donor.admin.dto;
 
 import com.blood_donor.common.enums.Role;

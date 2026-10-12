@@ -1,16 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.springframework.data.domain.Page
- *  org.springframework.data.domain.Pageable
- *  org.springframework.data.jpa.repository.JpaRepository
- *  org.springframework.data.jpa.repository.Modifying
- *  org.springframework.data.jpa.repository.Query
- *  org.springframework.data.repository.query.Param
- *  org.springframework.stereotype.Repository
- *  org.springframework.transaction.annotation.Transactional
- */
 package com.blood_donor.repository.donor_profile_repo;
 
 import com.blood_donor.common.enums.BloodGroup;
@@ -33,33 +20,33 @@ import org.springframework.transaction.annotation.Transactional;
 public interface DonorProfileRepository
 extends JpaRepository<DonorProfile, Long> {
     @EntityGraph(attributePaths = {"user"})
-    public Optional<DonorProfile> findByUserId(Long var1);
+    public Optional<DonorProfile> findByUserId(Long userId);
 
-    public boolean existsByUserId(Long var1);
-
-    @EntityGraph(attributePaths = {"user"})
-    public List<DonorProfile> findByUserIdIn(List<Long> var1);
+    public boolean existsByUserId(Long userId);
 
     @EntityGraph(attributePaths = {"user"})
-    public List<DonorProfile> findByIdIn(List<Long> var1);
+    public List<DonorProfile> findByUserIdIn(List<Long> userIds);
 
     @EntityGraph(attributePaths = {"user"})
-    public List<DonorProfile> findByBloodGroupAndCityAndIsAvailableTrue(BloodGroup var1, String var2);
+    public List<DonorProfile> findByIdIn(List<Long> ids);
 
     @EntityGraph(attributePaths = {"user"})
-    public List<DonorProfile> findByBloodGroupInAndCityIgnoreCaseAndIsAvailableTrue(List<BloodGroup> var1, String var2);
+    public List<DonorProfile> findByBloodGroupAndCityAndIsAvailableTrue(BloodGroup bloodGroup, String city);
 
     @EntityGraph(attributePaths = {"user"})
-    public List<DonorProfile> findByBloodGroupInAndIsAvailableTrue(List<BloodGroup> var1);
+    public List<DonorProfile> findByBloodGroupInAndCityIgnoreCaseAndIsAvailableTrue(List<BloodGroup> bloodGroups, String city);
+
+    @EntityGraph(attributePaths = {"user"})
+    public List<DonorProfile> findByBloodGroupInAndIsAvailableTrue(List<BloodGroup> bloodGroups);
 
     @Query(value="SELECT dp.*\nFROM donor_profiles dp\nWHERE dp.is_available = true\n  AND dp.latitude IS NOT NULL AND dp.longitude IS NOT NULL\n  AND dp.blood_group IN :bloodGroups\n  AND (6371 * acos(GREATEST(-1.0, LEAST(1.0,\n      cos(radians(:lat)) * cos(radians(dp.latitude))\n      * cos(radians(dp.longitude) - radians(:lng))\n      + sin(radians(:lat)) * sin(radians(dp.latitude))\n  )))) <= :radiusKm\nORDER BY dp.reliability_score DESC\nLIMIT :limit\n", nativeQuery=true)
-    public List<DonorProfile> findNearByCompatibleDonors(@Param(value="lat") double var1, @Param(value="lng") double var3, @Param(value="radiusKm") double var5, @Param(value="bloodGroups") List<String> var7, @Param(value="limit") int var8);
+    public List<DonorProfile> findNearByCompatibleDonors(@Param(value="lat") double lat, @Param(value="lng") double lng, @Param(value="radiusKm") double radiusKm, @Param(value="bloodGroups") List<String> bloodGroups, @Param(value="limit") int limit);
 
     public long countByIsAvailableTrue();
 
-    public long countByBloodGroup(BloodGroup var1);
+    public long countByBloodGroup(BloodGroup bloodGroup);
 
-    public long countByBloodGroupAndIsAvailableTrue(BloodGroup var1);
+    public long countByBloodGroupAndIsAvailableTrue(BloodGroup bloodGroup);
 
     public long countByCityIgnoreCase(String var1);
 
@@ -134,6 +121,6 @@ extends JpaRepository<DonorProfile, Long> {
     public List<DonorProfile> findByResponseRateIsNull();
 
     @Query(value="SELECT (\n    6371 * acos(\n        GREATEST(-1.0, LEAST(1.0,\n            cos(radians(:lat1))\n            * cos(radians(:lat2))\n            * cos(radians(:lng2) - radians(:lng1))\n            + sin(radians(:lat1))\n            * sin(radians(:lat2))\n        ))\n    )\n)\n", nativeQuery=true)
-    public Double calculateDistanceKm(@Param(value="lat1") double var1, @Param(value="lng1") double var3, @Param(value="lat2") double var5, @Param(value="lng2") double var7);
+    public Double calculateDistanceKm(@Param(value="lat1") double lat1, @Param(value="lng1") double lng1, @Param(value="lat2") double lat2, @Param(value="lng2") double lng2);
 }
 

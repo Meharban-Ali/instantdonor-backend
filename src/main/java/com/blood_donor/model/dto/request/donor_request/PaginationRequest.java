@@ -1,10 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  jakarta.validation.constraints.Max
- *  jakarta.validation.constraints.Min
- */
 package com.blood_donor.model.dto.request.donor_request;
 
 import jakarta.validation.constraints.Max;

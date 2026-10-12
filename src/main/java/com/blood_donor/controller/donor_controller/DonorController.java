@@ -1,30 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  io.swagger.v3.oas.annotations.Operation
- *  io.swagger.v3.oas.annotations.security.SecurityRequirement
- *  io.swagger.v3.oas.annotations.tags.Tag
- *  jakarta.validation.Valid
- *  org.slf4j.Logger
- *  org.slf4j.LoggerFactory
- *  org.springframework.data.domain.Page
- *  org.springframework.data.domain.PageRequest
- *  org.springframework.data.domain.Pageable
- *  org.springframework.data.domain.Sort
- *  org.springframework.http.HttpStatus
- *  org.springframework.http.HttpStatusCode
- *  org.springframework.http.ResponseEntity
- *  org.springframework.security.access.prepost.PreAuthorize
- *  org.springframework.web.bind.annotation.GetMapping
- *  org.springframework.web.bind.annotation.ModelAttribute
- *  org.springframework.web.bind.annotation.PatchMapping
- *  org.springframework.web.bind.annotation.PostMapping
- *  org.springframework.web.bind.annotation.RequestBody
- *  org.springframework.web.bind.annotation.RequestMapping
- *  org.springframework.web.bind.annotation.RequestParam
- *  org.springframework.web.bind.annotation.RestController
- */
 package com.blood_donor.controller.donor_controller;
 
 import com.blood_donor.exception.ApiException;

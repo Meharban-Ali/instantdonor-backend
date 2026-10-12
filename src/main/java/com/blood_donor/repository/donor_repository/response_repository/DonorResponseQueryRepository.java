@@ -1,10 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.springframework.data.jpa.repository.Query
- *  org.springframework.data.repository.query.Param
- */
 package com.blood_donor.repository.donor_repository.response_repository;
 
 import com.blood_donor.model.dto.response.donor_response.status.ResponseStatus;

@@ -1,13 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.slf4j.Logger
- *  org.slf4j.LoggerFactory
- *  org.springframework.beans.factory.annotation.Value
- *  org.springframework.stereotype.Service
- *  org.springframework.transaction.annotation.Transactional
- */
 package com.blood_donor.scheduler.serviceImpl;
 
 import com.blood_donor.model.dto.request.blood_request.BloodRequestStatus;

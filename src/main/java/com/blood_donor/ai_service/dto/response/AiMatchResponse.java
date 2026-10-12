@@ -1,10 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  com.fasterxml.jackson.annotation.JsonIgnoreProperties
- *  com.fasterxml.jackson.annotation.JsonProperty
- */
 package com.blood_donor.ai_service.dto.response;
 
 import com.blood_donor.ai_service.dto.response.AiDonorResult;

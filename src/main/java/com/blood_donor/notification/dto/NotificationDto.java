@@ -1,14 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  com.fasterxml.jackson.annotation.JsonIgnoreProperties
- *  com.fasterxml.jackson.databind.annotation.JsonDeserialize
- *  io.swagger.v3.oas.annotations.media.Schema
- *  jakarta.validation.constraints.NotBlank
- *  jakarta.validation.constraints.NotNull
- *  jakarta.validation.constraints.PastOrPresent
- */
 package com.blood_donor.notification.dto;
 
 import com.blood_donor.common.enums.BloodGroup;

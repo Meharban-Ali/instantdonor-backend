@@ -1,13 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.slf4j.Logger
- *  org.slf4j.LoggerFactory
- *  org.springframework.scheduling.annotation.Async
- *  org.springframework.stereotype.Service
- *  org.springframework.transaction.annotation.Transactional
- */
 package com.blood_donor.service.auth_service;
 
 import com.blood_donor.model.entity.AuditLog;

@@ -1,11 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  io.swagger.v3.oas.annotations.enums.SecuritySchemeType
- *  io.swagger.v3.oas.annotations.security.SecurityScheme
- *  org.springframework.context.annotation.Configuration
- */
 package com.blood_donor.swagger.config;
 
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;

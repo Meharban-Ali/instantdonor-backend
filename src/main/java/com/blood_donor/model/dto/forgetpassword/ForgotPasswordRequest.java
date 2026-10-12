@@ -1,10 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  jakarta.validation.constraints.Email
- *  jakarta.validation.constraints.NotBlank
- */
 package com.blood_donor.model.dto.forgetpassword;
 
 import jakarta.validation.constraints.Email;

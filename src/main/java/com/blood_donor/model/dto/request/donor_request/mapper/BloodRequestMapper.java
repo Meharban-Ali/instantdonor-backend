@@ -1,12 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.springframework.data.domain.Page
- *  org.springframework.data.domain.PageImpl
- *  org.springframework.data.domain.Pageable
- *  org.springframework.stereotype.Component
- */
 package com.blood_donor.model.dto.request.donor_request.mapper;
 
 import com.blood_donor.model.dto.request.donor_request.RequestBloodInfo;

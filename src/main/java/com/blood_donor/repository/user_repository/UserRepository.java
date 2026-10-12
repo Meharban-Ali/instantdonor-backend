@@ -1,16 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.springframework.data.domain.Page
- *  org.springframework.data.domain.Pageable
- *  org.springframework.data.jpa.repository.JpaRepository
- *  org.springframework.data.jpa.repository.Modifying
- *  org.springframework.data.jpa.repository.Query
- *  org.springframework.data.repository.query.Param
- *  org.springframework.stereotype.Repository
- *  org.springframework.transaction.annotation.Transactional
- */
 package com.blood_donor.repository.user_repository;
 
 import com.blood_donor.common.enums.Role;
@@ -46,7 +33,7 @@ extends JpaRepository<User, Long> {
 
     public boolean existsByEmailAndIdNot(String var1, Long var2);
 
-    public List<User> findByIdIn(List<Long> var1);
+    public List<User> findByIdIn(List<Long> ids);
 
     public long countByIsActiveTrue();
 

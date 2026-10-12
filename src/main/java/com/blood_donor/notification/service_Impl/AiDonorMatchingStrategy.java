@@ -1,11 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.slf4j.Logger
- *  org.slf4j.LoggerFactory
- *  org.springframework.stereotype.Component
- */
 package com.blood_donor.notification.service_Impl;
 
 import com.blood_donor.ai_service.dto.request.AiMatchRequest;

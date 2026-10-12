@@ -1,13 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.slf4j.Logger
- *  org.slf4j.LoggerFactory
- *  org.springframework.scheduling.annotation.Scheduled
- *  org.springframework.stereotype.Component
- *  org.springframework.transaction.annotation.Transactional
- */
 package com.blood_donor.scheduler.tokenscheduler;
 
 import com.blood_donor.repository.user_repository.PasswordResetTokenRepository;

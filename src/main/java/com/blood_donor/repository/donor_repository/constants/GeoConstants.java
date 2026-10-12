@@ -1,6 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- */
 package com.blood_donor.repository.donor_repository.constants;
 
 public final class GeoConstants {

@@ -1,14 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.slf4j.Logger
- *  org.slf4j.LoggerFactory
- *  org.springframework.http.HttpRequest
- *  org.springframework.http.client.ClientHttpRequestExecution
- *  org.springframework.http.client.ClientHttpRequestInterceptor
- *  org.springframework.http.client.ClientHttpResponse
- */
 package com.blood_donor.ai_service.config;
 
 import java.io.IOException;

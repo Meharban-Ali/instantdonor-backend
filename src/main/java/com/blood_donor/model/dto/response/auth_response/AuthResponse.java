@@ -1,6 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- */
 package com.blood_donor.model.dto.response.auth_response;
 
 import com.blood_donor.common.enums.Role;

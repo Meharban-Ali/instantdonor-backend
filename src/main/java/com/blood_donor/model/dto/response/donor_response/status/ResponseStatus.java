@@ -1,10 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  com.fasterxml.jackson.annotation.JsonCreator
- *  com.fasterxml.jackson.annotation.JsonValue
- */
 package com.blood_donor.model.dto.response.donor_response.status;
 
 import com.fasterxml.jackson.annotation.JsonCreator;

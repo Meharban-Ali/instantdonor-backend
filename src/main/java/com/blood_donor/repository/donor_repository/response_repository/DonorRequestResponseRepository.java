@@ -1,14 +1,3 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  org.springframework.data.jpa.repository.JpaRepository
- *  org.springframework.data.jpa.repository.Modifying
- *  org.springframework.data.jpa.repository.Query
- *  org.springframework.data.repository.query.Param
- *  org.springframework.stereotype.Repository
- *  org.springframework.transaction.annotation.Transactional
- */
 package com.blood_donor.repository.donor_repository.response_repository;
 
 import com.blood_donor.model.dto.request.blood_request.BloodRequestStatus;
@@ -59,7 +48,7 @@ extends JpaRepository<DonorRequestResponse, Long> {
     public List<DonorRequestResponse> findPendingResponsesBefore(@Param(value="timeout") LocalDateTime var1);
 
     @Query(value="SELECT COALESCE(\n    (\n        SUM(\n            CASE\n                WHEN drr.status IN ('ACCEPTED', 'REJECTED')\n                THEN 1\n                ELSE 0\n            END\n        ) * 100.0\n    ) / NULLIF(COUNT(drr), 0),\n    0\n)\nFROM DonorRequestResponse drr\nWHERE drr.donor.id = :donorId\n")
-    public Double calculateResponseRate(@Param(value="donorId") Long var1);
+    public Double calculateResponseRate(@Param(value="donorId") Long donorId);
 
     @Query(value="SELECT drr.request.id, drr.status, COUNT(drr.id)\nFROM DonorRequestResponse drr\nWHERE drr.request.id IN :requestIds\n  AND drr.status IN ('NOTIFIED', 'ACCEPTED')\nGROUP BY drr.request.id, drr.status\n")
     public List<Object[]> countStatusesForRequestIds(@Param(value="requestIds") List<Long> var1);

@@ -63,6 +63,7 @@ CREATE TABLE blood_requests (
     updated_at datetime(6) DEFAULT NULL,
     urgency enum('NORMAL','URGENT','CRITICAL') NOT NULL,
     created_by bigint NOT NULL,
+    version bigint DEFAULT 0,
     CONSTRAINT fk_br_user FOREIGN KEY (created_by) REFERENCES users (id),
     INDEX idx_br_status (status),
     INDEX idx_br_blood_group (blood_group),

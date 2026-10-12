@@ -23,14 +23,26 @@ import org.slf4j.LoggerFactory;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
-
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
     private org.springframework.data.redis.core.RedisTemplate<String, Object> redisTemplate;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public JwtAuthFilter(
+            JwtTokenProvider jwtTokenProvider,
+            CustomUserDetailsService customUserDetailsService,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) org.springframework.data.redis.core.RedisTemplate<String, Object> redisTemplate
+    ) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.customUserDetailsService = customUserDetailsService;
+        this.redisTemplate = redisTemplate;
+    }
+
+    public void setRedisTemplate(org.springframework.data.redis.core.RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @Override
     protected void doFilterInternal(

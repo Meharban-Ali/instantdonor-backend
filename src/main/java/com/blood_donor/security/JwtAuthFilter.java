@@ -60,7 +60,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         //Extract Bearer token from Authorization header
         String token = extractTokenFromRequest(request);
         if (StringUtils.hasText(token)){
-            log.info("JwtAuthFilter checking token blacklist. Token present: {}, redisTemplate present: {}", 
+            log.debug("JwtAuthFilter checking token blacklist. Token present: {}, redisTemplate present: {}", 
                      token != null, redisTemplate != null);
             if (redisTemplate != null) {
                 try {

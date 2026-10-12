@@ -1,136 +1,155 @@
 version: '3.8'
 
-# ============================================================
-# DOCKER ORCHESTRATION - PRODUCTION READY ARCHITECTURE
-# ============================================================
+# ══════════════════════════════════════════════════════════════
+# DOCKER COMPOSE - PRODUCTION-READY ARCHITECTURE
+# ══════════════════════════════════════════════════════════════
 
 services:
-  # ----------------------------
-  # 1. MySQL Database Service
-  # ----------------------------
+  # ────────────────────────────────────────────────────────────
+  # 1. MySQL 8 Database Service
+  # ────────────────────────────────────────────────────────────
   mysql:
-    image: mysql:8.0
+    image: mysql:8.0.36
     container_name: blood_donor_mysql
-    restart: always
+    restart: unless-stopped
     ports:
-      - "3307:3306" # Mapped to host 3307 to avoid conflict with native MySQL on host
+      - "${HOST_DB_PORT:-3306}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: "12345"
-      MYSQL_DATABASE: "blood_donor_db_dev"
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-RootPass_ChangeMe_123!}
+      MYSQL_DATABASE: ${DB_NAME:-blood_donor_db}
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - blood_donor_network
+      - blood_donor_net
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p12345"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD} || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 20s
 
-  # ----------------------------
-  # 2. Redis Caching Service
-  # ----------------------------
+  # ────────────────────────────────────────────────────────────
+  # 2. Redis 7 Cache & Rate Limiting Service
+  # ────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
     container_name: blood_donor_redis
-    restart: always
+    restart: unless-stopped
     ports:
-      - "6379:6379"
-    command: redis-server --requirepass 12345
+      - "${HOST_REDIS_PORT:-6379}:6379"
+    command: >
+      sh -c '
+        if [ -n "$$REDIS_PASSWORD" ]; then
+          redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes;
+        else
+          redis-server --appendonly yes;
+        fi
+      '
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     volumes:
       - redis_data:/data
     networks:
-      - blood_donor_network
+      - blood_donor_net
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "12345", "ping"]
+      test: >
+        sh -c '
+          if [ -n "$$REDIS_PASSWORD" ]; then
+            redis-cli -a "$$REDIS_PASSWORD" ping | grep PONG;
+          else
+            redis-cli ping | grep PONG;
+          fi
+        '
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # ----------------------------
-  # 3. AI Service (Python FastAPI)
-  # ----------------------------
-  ai-service:
-    build:
-      context: ./ai-service
-      dockerfile: Dockerfile
-    container_name: blood_donor_ai_service
-    restart: always
-    ports:
-      - "8000:8000"
-    environment:
-      - ENVIRONMENT=production
-      - HOST=0.0.0.0
-      - PORT=8000
-      - DB_URL=mysql+pymysql://root:12345@mysql:3306/blood_donor_db
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=12345
-      - SPRING_BOOT_URL=http://backend:8090
-      - JWT_SECRET=BloodDonorNetworkSecretKey2024ForLocalDevOnly123456
-      - CORS_ORIGINS=["http://localhost:3000", "http://localhost:8090", "http://localhost:5173"]
-    networks:
-      - blood_donor_network
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
-  # ----------------------------
-  # 4. Backend Service (Spring Boot)
-  # ----------------------------
+  # ────────────────────────────────────────────────────────────
+  # 3. Spring Boot Backend Service
+  # ────────────────────────────────────────────────────────────
   backend:
     build:
-      context: ./Backend/AiBloodDonorWebApplication_Backend
+      context: .
       dockerfile: Dockerfile
     container_name: blood_donor_backend
-    restart: always
+    restart: unless-stopped
     ports:
-      - "8090:8090"
+      - "${PORT:-8080}:8080"
+    env_file:
+      - .env.example
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - PORT=8090
-      - DB_URL=jdbc:mysql://mysql:3306/blood_donor_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_URL=jdbc:mysql://mysql:3306/${DB_NAME:-blood_donor_db}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - DB_USERNAME=root
-      - DB_PASSWORD=12345
-      - REPLICA_DB_URL=jdbc:mysql://mysql:3306/blood_donor_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-      - REPLICA_DB_USERNAME=root
-      - REPLICA_DB_PASSWORD=12345
+      - DB_PASSWORD=${DB_PASSWORD:-RootPass_ChangeMe_123!}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=12345
-      - AI_SERVICE_URL=http://ai-service:8000
-      - FRONTEND_URL=http://localhost:3000
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
-    networks:
-      - blood_donor_network
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - JWT_SECRET=${JWT_SECRET:-ThisIsADefaultProductionSecretKeyWithAtLeastFortyEightBytesForSha384!}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Admin@StrongPass123!}
+      - AI_SERVICE_URL=${AI_SERVICE_URL:-http://ai-service:8000}
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
-
-  # ----------------------------
-  # 5. Frontend Service (React + Nginx)
-  # ----------------------------
-  frontend:
-    build:
-      context: ./Frontend/ai-blood-donor-ui
-      dockerfile: Dockerfile
-    container_name: blood_donor_frontend
-    restart: always
-    ports:
-      - "3000:80"
     networks:
-      - blood_donor_network
-    depends_on:
-      - backend
+      - blood_donor_net
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-# ============================================================
-# VOLUMES & NETWORKS SPECIFICATIONS
-# ============================================================
+  # ────────────────────────────────────────────────────────────
+  # 4. AI Matching Service (Optional / Placeholder)
+  # ────────────────────────────────────────────────────────────
+  ai-service:
+    image: python:3.11-slim
+    container_name: blood_donor_ai_placeholder
+    restart: unless-stopped
+    profiles:
+      - ai-optional
+    ports:
+      - "8000:8000"
+    command: >
+      python -c '
+      from http.server import HTTPServer, BaseHTTPRequestHandler
+      import json
 
+      class Handler(BaseHTTPRequestHandler):
+          def do_GET(self):
+              if self.path == "/health":
+                  self.send_response(200)
+                  self.send_header("Content-Type", "application/json")
+                  self.end_headers()
+                  self.wfile.write(b"{\"status\":\"UP\"}")
+              else:
+                  self.send_response(404)
+                  self.end_headers()
+
+          def do_POST(self):
+              self.send_response(200)
+              self.send_header("Content-Type", "application/json")
+              self.end_headers()
+              self.wfile.write(b"{\"totalFound\":0,\"donors\":[]}")
+
+      server = HTTPServer(("0.0.0.0", 8000), Handler)
+      print("AI matching service running on port 8000...")
+      server.serve_forever()
+      '
+    networks:
+      - blood_donor_net
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+# ══════════════════════════════════════════════════════════════
+# VOLUMES & NETWORKS
+# ══════════════════════════════════════════════════════════════
 volumes:
   mysql_data:
     driver: local
@@ -138,5 +157,5 @@ volumes:
     driver: local
 
 networks:
-  blood_donor_network:
+  blood_donor_net:
     driver: bridge

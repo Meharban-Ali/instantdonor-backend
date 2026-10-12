@@ -1,254 +1,137 @@
-# 🩸 AI Blood Donor Network
+# 🩸 AI Blood Donor Network — Production Backend
 
-> Production-level AI-powered emergency blood donor platform that connects
-> patients with compatible donors in minutes using smart matching algorithms.
-
-![Java](https://img.shields.io/badge/Java-17-orange)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2.5-green)
-![React](https://img.shields.io/badge/React-18-blue)
-![Python](https://img.shields.io/badge/Python-3.11-yellow)
-![License](https://img.shields.io/badge/License-MIT-purple)
-
----
-
-## 🚀 Features
-
-- **AI-Powered Donor Matching** — Ranks donors by distance, reliability,
-  eligibility and response rate using a weighted scoring algorithm
-- **Emergency Notifications** — Email + SMS alerts to nearby donors
-  within seconds of a blood request
-- **Blood Compatibility Engine** — Automatically finds compatible donors
-  when exact blood group unavailable
-- **Real-time Status Tracking** — ACTIVE → MATCHING → FULFILLED lifecycle
-- **Admin Dashboard** — Live analytics, charts, user/donor management
-- **JWT Authentication** — Secure role-based access (USER, DONOR, ADMIN, HOSPITAL)
-- **Redis Caching** — Sub-millisecond response for donor search
-- **Auto-Expire Scheduler** — Requests auto-expire based on urgency level
+> High-throughput, production-ready AI-powered emergency blood donor network backend built with Java 21, Spring Boot 3.2.5, MySQL 8, Redis 7, and Docker.
 
 ---
 
 ## 🏗️ Architecture
 
-┌─────────────────┐     ┌──────────────────┐     ┌──────────────────┐
-│   React Frontend │────▶│  Spring Boot API  │────▶│  Python FastAPI  │
-│   (Port 5173)    │     │   (Port 8080)     │     │   (Port 8000)    │
-│   Vite + Tailwind│     │   JWT + Security  │     │   AI Matching    │
-└─────────────────┘     └────────┬─────────┘     └──────────────────┘
-│
-┌─────────────┼─────────────┐
-│             │             │
-┌──────▼──────┐ ┌───▼────┐ ┌─────▼─────┐
-│   MySQL 8   │ │ Redis  │ │  Gmail    │
-│  (Port 3306)│ │(Port   │ │  SMTP     │
-└─────────────┘ │ 6379)  │ └───────────┘
-└────────┘
-
----
-
-## 🛠️ Tech Stack
-
-### Backend
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| Java | 17 LTS | Core language |
-| Spring Boot | 3.2.5 | Web framework |
-| Spring Security | 6.x | Auth + JWT |
-| Spring Data JPA | 3.x | ORM |
-| MySQL | 8.0 | Primary database |
-| Redis | 7.x | Caching layer |
-| Flyway | 10.x | DB migrations |
-
-### Frontend
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| React | 18.x | UI framework |
-| Vite | 5.x | Build tool |
-| Tailwind CSS | 3.x | Styling |
-| TanStack Query | 5.x | Server state |
-| Zustand | 4.x | Client state |
-| Framer Motion | 11.x | Animations |
-| Recharts | 2.x | Charts |
-
-### AI Service
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| Python | 3.11 | Core language |
-| FastAPI | 0.109 | API framework |
-| SQLAlchemy | 2.0 | DB ORM |
-| scikit-learn | 1.4 | ML library |
-| NumPy | 1.26 | Math operations |
-
----
-
-## ⚡ Quick Start
-
-### Prerequisites
-- Java 17+
-- Node.js 20+
-- Python 3.11+
-- MySQL 8.0+
-- Redis 7+
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/meharban-ali/ai-blood-donor-network.git
-cd ai-blood-donor-network
 ```
-
-### 2. Setup environment variables
-```bash
-cp .env.example .env
-# Edit .env with your credentials
-```
-
-### 3. Start Backend
-```bash
-cd Backend/AiBloodDonorWebApplication_Backend
-mvn spring-boot:run
-# Runs on http://localhost:8080
-```
-
-### 4. Start AI Service
-```bash
-cd ai-service
-python -m venv venv
-venv\Scripts\activate  # Windows
-pip install -r requirements.txt
-python main.py
-# Runs on http://localhost:8000
-```
-
-### 5. Start Frontend
-```bash
-cd frontend
-pnpm install
-pnpm dev
-# Runs on http://localhost:5173
-```
-
-### 6. Or use Docker (recommended)
-```bash
-docker-compose up -d
-# Full stack at http://localhost
+                                  ┌───────────────────────────┐
+                                  │      Client Applications   │
+                                  │  (Web / React, Mobile App)│
+                                  └─────────────┬─────────────┘
+                                                │ (HTTPS / JWT)
+                                                ▼
+                                  ┌───────────────────────────┐
+                                  │   Spring Boot 3.2 API     │
+                                  │   (TraceIdFilter + MDC)   │
+                                  │   (RateLimitingFilter)    │
+                                  │   (JwtAuthFilter)         │
+                                  └──────┬──────┬──────┬──────┘
+                                         │      │      │
+            ┌────────────────────────────┘      │      └────────────────────────────┐
+            ▼                                   ▼                                   ▼
+┌───────────────────────┐           ┌───────────────────────┐           ┌───────────────────────┐
+│   MySQL 8.0 Cluster   │           │     Redis 7 Cache     │           │   AI Python Service   │
+│   (Flyway Migrations) │           │   (Token Blacklist,   │           │   (FastAPI Scoring,   │
+│   (Optimistic Locks)  │           │    Rate Limits, TTL)  │           │    City Fallback)     │
+└───────────────────────┘           └───────────────────────┘           └───────────────────────┘
 ```
 
 ---
 
-## 🔑 Default Credentials
+## ⚙️ Environment Variables Reference Table
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@blooddonor.com | Admin@1234 |
-
----
-
-## 📡 API Endpoints
-
-### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Register user |
-| POST | `/api/auth/login` | Login |
-| POST | `/api/auth/forgot-password` | Request reset email |
-| POST | `/api/auth/reset-password` | Reset with token |
-| GET  | `/api/auth/me` | Get my profile |
-
-### Donors
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/donor/register` | Register as donor |
-| GET  | `/api/donor/search` | Search by city |
-| GET  | `/api/donor/search/nearby` | Search by location |
-| PUT  | `/api/donor/availability` | Toggle availability |
-| GET  | `/api/donor/eligibility` | Check 90-day rule |
-
-### Blood Requests
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/request` | Create emergency request |
-| GET  | `/api/request/active` | All active requests |
-| GET  | `/api/request/:id` | Request detail |
-| POST | `/api/request/respond` | Donor accept/reject |
-| PUT  | `/api/request/:id/fulfill` | Mark fulfilled |
-
-### AI Service
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/ai/match-donors` | Find best donors |
-| POST | `/api/ai/predict-demand` | Blood demand forecast |
-
-📖 Full Swagger docs: `http://localhost:8080/swagger-ui.html`
+| Variable | Required in Prod | Default | Purpose / Description |
+|:---|:---:|:---|:---|
+| `SPRING_PROFILES_ACTIVE` | Yes | `dev` | Active Spring profile (`prod`, `dev`, `integration`). |
+| `SERVER_PORT` | No | `8080` | HTTP port on which Tomcat listens. |
+| `DB_URL` | **YES** | *None* | JDBC connection URL for MySQL (e.g. `jdbc:mysql://mysql:3306/blood_donor_db`). |
+| `DB_USERNAME` | **YES** | *None* | MySQL database username. |
+| `DB_PASSWORD` | **YES** | *None* | MySQL database password (fail-fast enforced on startup). |
+| `REDIS_HOST` | **YES** | *None* | Hostname or IP of the Redis server. |
+| `REDIS_PORT` | **YES** | `6379` | Port for the Redis server. |
+| `REDIS_PASSWORD` | Optional | *Empty* | Authentication password for Redis (if enabled). |
+| `JWT_SECRET` | **YES** | *None* | Secret key for JJWT HMAC-SHA384 (strictly minimum 48 bytes / 384 bits). |
+| `JWT_EXPIRATION` | No | `86400000` | Access token lifespan in milliseconds (24 hours). |
+| `JWT_REFRESH_EXPIRATION` | No | `604800000` | Refresh token lifespan in milliseconds (7 days). |
+| `ADMIN_NAME` | No | `Super Admin` | Full name of the bootstrapped system administrator. |
+| `ADMIN_EMAIL` | No | `admin@blooddonor.org` | Email address of the system administrator. |
+| `ADMIN_PASSWORD` | **YES** | *None* | Password for default administrator (hardcoded default removed; required for bootstrap). |
+| `AI_SERVICE_URL` | No | `http://ai-service:8000` | Base URL of the Python AI matching microservice. |
+| `FRONTEND_URL` | Yes | `http://localhost:3000` | Client origin URL for reset-password links and CORS. |
+| `CORS_ALLOWED_ORIGINS`| No | `http://localhost:3000` | Comma-separated list of permitted CORS origins. |
+| `MAIL_HOST` | Optional | `smtp.gmail.com` | SMTP relay server host. |
+| `MAIL_PORT` | Optional | `587` | SMTP relay port (TLS). |
+| `MAIL_USERNAME` | Optional | *None* | SMTP username / email address. |
+| `MAIL_PASSWORD` | Optional | *None* | SMTP application-specific password. |
+| `TWILIO_ACCOUNT_SID` | Optional | *None* | Twilio Account SID for emergency SMS alerts. |
+| `TWILIO_AUTH_TOKEN` | Optional | *None* | Twilio Auth Token for emergency SMS alerts. |
+| `TWILIO_PHONE_NUMBER` | Optional | *None* | Twilio originating phone number (E.164 format). |
 
 ---
 
-## 🧠 AI Matching Algorithm
-Donor Score (0-100) =
-Distance Score    × 40%  (nearest = highest)
-Reliability Score × 30%  (history based)
-Eligibility Score × 20%  (90-day rule)
-Response Rate     × 10%  (past behavior)
+## 🚀 Running & Testing Commands
 
----
-
-## 📁 Project Structure
-ai-blood-donor-network/
-├── Backend/
-│   └── AiBloodDonorWebApplication_Backend/
-│       ├── src/main/java/com/blooddonor/
-│       │   ├── entity/          # 6 JPA entities
-│       │   ├── repository/      # 6 repositories
-│       │   ├── modules/         # 7 feature modules
-│       │   ├── config/          # App configuration
-│       │   ├── security/        # JWT security
-│       │   └── scheduler/       # Scheduled tasks
-│       └── src/main/resources/
-│           ├── application.properties
-│           └── templates/email/ # HTML email templates
-├── ai-service/                  # Python FastAPI
-│   ├── main.py
-│   ├── services/
-│   ├── routes/
-│   └── utils/
-├── frontend/                    # React + Vite
-│   └── src/
-│       ├── pages/
-│       ├── components/
-│       ├── hooks/
-│       ├── services/
-│       └── store/
-├── docker-compose.yml
-└── README.md
-
-
----
-
-## 🔒 Security Features
-
-- JWT access tokens (24h) + refresh tokens (7d)
-- BCrypt password encoding (cost factor 12)
-- Role-based access control (USER, DONOR, ADMIN, HOSPITAL)
-- Password reset tokens expire in 30 minutes (one-time use)
-- Enumeration attack prevention on forgot-password
-- CORS configured for specific origins
-- SQL injection prevention (JPA parameterized queries)
-- XSS protection headers (Nginx)
-
----
-
-## 🧪 Running Tests
-
+### 1. Build and Run Locally
 ```bash
-# Backend tests
-cd Backend/AiBloodDonorWebApplication_Backend
-mvn test
+# Compile and start with local profile
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
-# Frontend tests
-cd frontend
-pnpm run test
+# Start in production mode with required environment variables
+export DB_URL="jdbc:mysql://localhost:3306/blood_donor_db"
+export DB_USERNAME="root"
+export DB_PASSWORD="YourSecurePassword123!"
+export REDIS_HOST="localhost"
+export REDIS_PORT="6379"
+export JWT_SECRET="ThisIsAVerySecureSecretKeyWithAtLeastFortyEightBytesForSha384!"
+export ADMIN_PASSWORD="Admin@StrongPassword123!"
+java -jar target/ai-blood-donor-network-1.0.0.jar --spring.profiles.active=prod
+```
+
+### 2. Run Comprehensive Test Suite (Unit + Testcontainers MySQL 8 & Redis)
+```bash
+# Run all tests (real MySQL 8 and Redis automatically spawned via Testcontainers)
+mvn clean test
+```
+
+### 3. Run OWASP Dependency-Check Scan
+```bash
+# Scan for known CVE vulnerabilities in dependencies
+mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=8
+```
+
+### 4. Run Concurrency & Load Benchmark
+```bash
+# Execute 100 concurrent workers test against real database
+mvn test -Dtest=RealDatabasePhase5LoadTest
+
+# Or run k6 distributed load test script
+k6 run scripts/load_test_k6.js
+```
+
+### 5. Run with Docker Compose
+```bash
+# Spin up MySQL, Redis, Spring Boot Backend, and optional AI service
+docker compose up -d --build
 ```
 
 ---
 
-## 📄 License
+## 🛡️ Reliability & High-Availability Runbook
 
-MIT License — see LICENSE file for details.
+### 1. What happens when Redis is DOWN?
+* **Token Blacklist**: Enforces a strict **fail-closed** security policy. Requests bearing tokens return HTTP `503 Service Unavailable`, preventing revoked or compromised tokens from executing operations while the blacklist is unreachable.
+* **Rate Limiting**: Gracefully falls back to local in-memory sliding window counters so legitimate requests continue to be processed.
+* **Cache Eviction**: Falls back to direct database reads; donor searches query MySQL directly using optimized compound indexes.
+
+### 2. What happens when the AI Service is DOWN?
+* **Matching Fallback**: If `AI_SERVICE_URL` returns connection refused, timeout, or HTTP 5xx, `AiDonorMatchingStrategy` automatically falls back to the database-driven SQL city matching query.
+* **Zero Disruption**: Blood requests are created and dispatched to donors without interruption.
+* **Observability**: Increments the custom Micrometer counter `ai.matching.fallback` for live alerting.
+
+### 3. What happens when MySQL Database is DOWN?
+* **Connection Pool**: HikariCP maintains retry backoff up to `connection-timeout` (30 seconds).
+* **Graceful Degradation**: Endpoints return a standardized `ApiResponse` with HTTP `503 Service Unavailable`.
+* **Probes**: Actuator readiness probe `/actuator/health/readiness` reports `DOWN`, prompting load balancers to route traffic away from the container.
+
+---
+
+## 🔒 Security & Data Protection (DPDP)
+
+* **Uniform Error Responses**: All status codes (400, 401, 403, 404, 409, 429, 500, 503) return standard `ApiResponse<T>` JSON containing both `message` and `error` fields.
+* **Security Headers**: HSTS, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`.
+* **PII Redaction**: Phone numbers and emails are masked in all audit logs, trace MDC logs, and external API previews.
+* **Right to Erasure (DPDP)**: `DELETE /api/auth/me` anonymizes user records, scrambles credentials, and cancels pending requests.
+* **Account Lockout**: 5 consecutive failed login attempts trigger an automatic 15-minute lockout (HTTP 429).

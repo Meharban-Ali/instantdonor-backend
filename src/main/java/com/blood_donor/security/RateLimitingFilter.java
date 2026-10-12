@@ -176,11 +176,12 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     }
 
     private String getClientIp(HttpServletRequest request) {
-        String xfHeader = request.getHeader("X-Forwarded-For");
-        if (xfHeader == null || xfHeader.isEmpty()) {
-            return request.getRemoteAddr();
-        }
-        return xfHeader.split(",")[0].trim();
+        // When server.forward-headers-strategy=framework is enabled,
+        // ForwardedHeaderFilter safely updates request.getRemoteAddr()
+        // only if forwarded headers come from a trusted proxy.
+        // We never blindly parse raw unverified X-Forwarded-For headers directly.
+        String remoteAddr = request.getRemoteAddr();
+        return (remoteAddr != null && !remoteAddr.isBlank()) ? remoteAddr : "unknown";
     }
 
     private static class TokenBucket {

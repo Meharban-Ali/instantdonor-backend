@@ -1,6 +1,6 @@
 name: Backend CI / CD Pipeline
 
-on:
+'on':
   push:
     branches: [ "main", "master", "chore/**" ]
   pull_request:

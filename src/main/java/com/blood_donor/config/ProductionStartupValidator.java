@@ -35,11 +35,11 @@ public class ProductionStartupValidator implements ApplicationRunner {
             throw new IllegalStateException("FATAL STARTUP ERROR: JWT secret (jwt.secret / JWT_SECRET) is missing or blank.");
         }
 
-        // HMAC-SHA384 requires at least 48 bytes (384 bits) of key material
+        // HMAC-SHA256 requires at least 32 bytes (256 bits) of key material
         byte[] secretBytes = this.jwtSecret.getBytes(StandardCharsets.UTF_8);
-        if (secretBytes.length < 48) {
+        if (secretBytes.length < 32) {
             throw new IllegalStateException(
-                    "FATAL STARTUP ERROR: JWT secret is too short for HMAC-SHA384. Minimum required length is 48 bytes (384 bits), found "
+                    "FATAL STARTUP ERROR: JWT secret is too short. Minimum required length is 32 bytes (256 bits), found "
                             + secretBytes.length + " bytes."
             );
         }

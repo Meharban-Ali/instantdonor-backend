@@ -109,6 +109,36 @@ docker compose up -d --build
 
 ---
 
+## 🗄️ Database Migrations & Flyway Baseline Runbook
+
+### Migration Versioning
+* `V1__init_schema.sql`: Baseline schema matching all JPA entities (users, roles, donor_profiles, blood_requests with `@Version`, donor_request_responses, password_reset_tokens, donation_history, audit_logs).
+* `V2__add_performance_indexes.sql`: Compound performance indexes for donor search (`idx_donor_city_group_avail`), request status and urgency (`idx_request_status_group_created`), and audit timestamps.
+
+### How Migrations Work Across Environments
+1. **Fresh / Blank Database (CI / Testcontainers / New Deployments):**
+   * Flyway starts automatically on app boot.
+   * Creates `flyway_schema_history` table.
+   * Sequentially executes `V1` then `V2`.
+   * Hibernate verifies schema against entities via `spring.jpa.hibernate.ddl-auto=validate`.
+
+2. **Existing Non-Empty Database (Local Dev / Staging with existing tables):**
+   * `spring.flyway.baseline-on-migrate=true` and `spring.flyway.baseline-version=1` are configured.
+   * If existing tables already exist without Flyway tracking, Flyway treats the current state as Baseline `V1` without attempting to recreate existing tables (preventing `Table already exists` errors).
+   * It then applies only pending incremental migrations (e.g., `V2`).
+   * No data loss occurs.
+
+3. **Step-by-Step Manual Baseline (If needed for existing production DB):**
+   ```bash
+   # Option A: Baseline using Maven plugin
+   mvn flyway:baseline -Dflyway.baselineVersion=1
+
+   # Option B: Run migrations up to latest version
+   mvn flyway:migrate
+   ```
+
+---
+
 ## 🛡️ Reliability & High-Availability Runbook
 
 ### 1. What happens when Redis is DOWN?

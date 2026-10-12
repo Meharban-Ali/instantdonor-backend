@@ -67,17 +67,22 @@ implements INotificationService {
 
     private int processNotifications(List<AiDonorResult> matchedDonors, BloodRequest request) {
         int notified = 0;
+        int smsSent = 0;
         int maxNotify = this.notificationProperties.getMaxDonorsToNotify();
+        int maxSms = this.notificationProperties.getMaxSmsRecipients();
         for (AiDonorResult donorResult : matchedDonors) {
             if (notified >= maxNotify) break;
             DonorProfile donor = this.donorRepo.findById(donorResult.getDonorId()).orElse(null);
             if (donor == null) {
-                log.warn("Donor profile not found: donorId={}", (Object)donorResult.getDonorId());
+                log.warn("Donor profile not found: donorId={}", donorResult.getDonorId());
                 continue;
             }
             this.notificationTracker.trackNotification(donor, request);
             this.sendDonorEmergencyEmail(donor, request, donorResult.getDistanceKm());
-            this.sendDonorEmergencySms(donor, request);
+            if (smsSent < maxSms) {
+                this.sendDonorEmergencySms(donor, request);
+                ++smsSent;
+            }
             ++notified;
         }
         return notified;

@@ -14,7 +14,8 @@ public class RegisterRequest {
     private @NotBlank(message="Email is required") @Email(message="Invalid email format") String email;
     @NotBlank(message="Password is required")
     @Size(min=8, message="Password must be at least 8 characters")
-    private @NotBlank(message="Password is required") @Size(min=8, message="Password must be at least 8 characters") String password;
+    @Pattern(regexp="^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!._-]).{8,}$", message="Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character")
+    private String password;
     @NotBlank(message="Mobile number is required")
     @Pattern(regexp="^[+]?[0-9]{10,15}$", message="Invalid mobile number")
     private @NotBlank(message="Mobile number is required") @Pattern(regexp="^[+]?[0-9]{10,15}$", message="Invalid mobile number") String phone;

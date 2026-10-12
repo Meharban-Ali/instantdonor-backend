@@ -42,6 +42,8 @@ public class AuthService {
     private final INotificationService notificationService;
     @Autowired(required=false)
     private RedisTemplate<String, Object> redisTemplate;
+    @Autowired(required=false)
+    private com.blood_donor.repository.donor_repository.request_repository.BloodRequestRepository bloodRequestRepository;
     @Value(value="${app.reset-token.expiry-minutes:30}")
     private int resetTokenExpiryMinutes;
     @Value(value="${app.frontend.url:http://localhost:5173}")
@@ -51,6 +53,8 @@ public class AuthService {
     @Value(value="${rate-limiting.login.refill-interval:60}")
     private long loginEmailRefillInterval;
     private final java.util.concurrent.ConcurrentHashMap<String, EmailTokenBucket> emailBuckets = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentHashMap<String, Long> accountLockouts = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentHashMap<String, Integer> failedAttempts = new java.util.concurrent.ConcurrentHashMap<>();
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -62,26 +66,102 @@ public class AuthService {
         }
         User user = User.builder().name(request.getName()).email(request.getEmail()).password(this.passwordEncoder.encode((CharSequence)request.getPassword())).phone(request.getPhone()).roles(new HashSet<Role>(Set.of(Role.USER))).build();
         User savedUser = (User)this.userRepository.save(user);
-        log.info("New user registered: {} with roles {}", (Object)savedUser.getEmail(), savedUser.getRoles());
+        log.info("New user registered: {} with roles {}", com.blood_donor.utils.PiiMasker.maskEmail(savedUser.getEmail()), savedUser.getRoles());
         return this.buildAuthResponse(savedUser);
     }
 
     @Transactional(readOnly=true)
     public AuthResponse login(LoginRequest request) {
-        if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
-            String normalizedEmail = request.getEmail().trim().toLowerCase();
+        String normalizedEmail = (request.getEmail() != null) ? request.getEmail().trim().toLowerCase() : "";
+        if (!normalizedEmail.isEmpty()) {
+            if (this.isAccountLocked(normalizedEmail)) {
+                log.warn("Login blocked: account temporarily locked for email: {}", com.blood_donor.utils.PiiMasker.maskEmail(normalizedEmail));
+                throw ApiException.tooManyRequests("Account temporarily locked due to repeated failed logins. Please try again after 15 minutes or reset your password.");
+            }
             if (!this.checkEmailRateLimit(normalizedEmail)) {
-                log.warn("Rate limit exceeded for login email: {}", normalizedEmail);
+                log.warn("Rate limit exceeded for login email: {}", com.blood_donor.utils.PiiMasker.maskEmail(normalizedEmail));
                 throw ApiException.tooManyRequests("Too many login attempts for this account. Please try again later.");
             }
         }
-        this.authenticationManager.authenticate((Authentication)new UsernamePasswordAuthenticationToken((Object)request.getEmail(), (Object)request.getPassword()));
+
+        try {
+            this.authenticationManager.authenticate((Authentication)new UsernamePasswordAuthenticationToken((Object)request.getEmail(), (Object)request.getPassword()));
+        } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            if (!normalizedEmail.isEmpty()) {
+                this.recordFailedLogin(normalizedEmail);
+            }
+            throw e;
+        }
+
+        if (!normalizedEmail.isEmpty()) {
+            this.clearFailedLogins(normalizedEmail);
+        }
+
         User user = this.userRepository.findByEmail(request.getEmail()).orElseThrow(() -> ApiException.notFound("User not found"));
         if (!user.getIsActive().booleanValue()) {
             throw ApiException.forbidden("Account is deactivated");
         }
-        log.info("User logged in: {}", (Object)user.getEmail());
+        log.info("User logged in: {}", com.blood_donor.utils.PiiMasker.maskEmail(user.getEmail()));
         return this.buildAuthResponse(user);
+    }
+
+    private boolean isAccountLocked(String email) {
+        String lockKey = "lockout:account:" + email;
+        if (this.redisTemplate != null) {
+            try {
+                return Boolean.TRUE.equals(this.redisTemplate.hasKey(lockKey));
+            } catch (Exception e) {
+                log.warn("Redis lockout check failed, checking memory: {}", e.getMessage());
+            }
+        }
+        Long lockedUntil = this.accountLockouts.get(email);
+        if (lockedUntil != null) {
+            if (System.currentTimeMillis() < lockedUntil) {
+                return true;
+            } else {
+                this.accountLockouts.remove(email);
+            }
+        }
+        return false;
+    }
+
+    private void recordFailedLogin(String email) {
+        String failedKey = "lockout:failed:" + email;
+        String lockKey = "lockout:account:" + email;
+        int count = 1;
+        if (this.redisTemplate != null) {
+            try {
+                Long incremented = this.redisTemplate.opsForValue().increment(failedKey);
+                count = (incremented != null) ? incremented.intValue() : 1;
+                this.redisTemplate.expire(failedKey, 15, TimeUnit.MINUTES);
+                if (count >= 5) {
+                    this.redisTemplate.opsForValue().set(lockKey, "locked", 15, TimeUnit.MINUTES);
+                    log.warn("Account temporarily locked (5 failed attempts) for: {}", com.blood_donor.utils.PiiMasker.maskEmail(email));
+                }
+                return;
+            } catch (Exception e) {
+                log.warn("Redis recordFailedLogin failed, using memory: {}", e.getMessage());
+            }
+        }
+        count = this.failedAttempts.merge(email, 1, Integer::sum);
+        if (count >= 5) {
+            this.accountLockouts.put(email, System.currentTimeMillis() + (15 * 60 * 1000L));
+            log.warn("Account temporarily locked in-memory (5 failed attempts) for: {}", com.blood_donor.utils.PiiMasker.maskEmail(email));
+        }
+    }
+
+    private void clearFailedLogins(String email) {
+        String failedKey = "lockout:failed:" + email;
+        String lockKey = "lockout:account:" + email;
+        if (this.redisTemplate != null) {
+            try {
+                this.redisTemplate.delete(java.util.List.of(failedKey, lockKey));
+            } catch (Exception e) {
+                log.warn("Redis clearFailedLogins failed: {}", e.getMessage());
+            }
+        }
+        this.failedAttempts.remove(email);
+        this.accountLockouts.remove(email);
     }
 
     private boolean checkEmailRateLimit(String email) {
@@ -284,6 +364,53 @@ public class AuthService {
                 log.warn("Failed to blacklist refresh token: {}", (Object)e.getMessage());
             }
         }
+    }
+
+    @Transactional
+    public void deleteAccount(Long userId, String accessToken) {
+        User user = (User)this.userRepository.findById(userId)
+                .orElseThrow(() -> ApiException.notFound("User not found"));
+
+        if (user.hasRole(Role.ADMIN)) {
+            long activeAdminCount = this.userRepository.countByRoleAndIsActiveTrue(Role.ADMIN);
+            if (activeAdminCount <= 1) {
+                throw ApiException.forbidden("Cannot delete or deactivate the last remaining active administrator account");
+            }
+        }
+
+        log.info("DPDP account erasure initiated for userId: {}", userId);
+
+        user.setName("Deleted User " + userId);
+        user.setEmail("deleted_" + userId + "@anonymized.local");
+        user.setPhone("+0000000000" + (userId % 1000));
+        user.setPassword(this.passwordEncoder.encode(UUID.randomUUID().toString()));
+        user.setIsActive(false);
+
+        if (user.getDonorProfile() != null) {
+            user.getDonorProfile().setAvailable(false);
+            user.getDonorProfile().setCity("Anonymized");
+            user.getDonorProfile().setState("Anonymized");
+        }
+
+        if (this.bloodRequestRepository != null) {
+            java.util.List<com.blood_donor.model.dto.request.blood_request.BloodRequestStatus> activeStatuses =
+                    java.util.List.of(com.blood_donor.model.dto.request.blood_request.BloodRequestStatus.PENDING,
+                            com.blood_donor.model.dto.request.blood_request.BloodRequestStatus.ACTIVE,
+                            com.blood_donor.model.dto.request.blood_request.BloodRequestStatus.MATCHING);
+            java.util.List<com.blood_donor.model.entity.BloodRequest> activeRequests =
+                    this.bloodRequestRepository.findByCreatedByIdAndStatusIn(userId, activeStatuses);
+            for (com.blood_donor.model.entity.BloodRequest req : activeRequests) {
+                req.setStatus(com.blood_donor.model.dto.request.blood_request.BloodRequestStatus.CANCELLED);
+                this.bloodRequestRepository.save(req);
+            }
+        }
+
+        if (accessToken != null) {
+            this.logout(accessToken, null);
+        }
+
+        this.userRepository.save(user);
+        log.info("DPDP account erasure completed for userId: {}", userId);
     }
 
     private AuthResponse buildAuthResponse(User user) {

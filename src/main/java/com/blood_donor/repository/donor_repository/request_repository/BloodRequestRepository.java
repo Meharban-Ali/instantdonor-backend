@@ -48,6 +48,10 @@ extends JpaRepository<BloodRequest, Long> {
 
     public boolean existsByCreatedByIdAndStatusInAndBloodGroup(Long userId, List<BloodRequestStatus> statuses, BloodGroup bloodGroup);
 
+    public long countByCreatedByIdAndStatusIn(Long userId, List<BloodRequestStatus> statuses);
+
+    public long countByCreatedByIdAndCreatedAtAfter(Long userId, LocalDateTime after);
+
     @EntityGraph(attributePaths = {"createdBy"})
     public Page<BloodRequest> findByStatusInOrderByCreatedAtDesc(List<BloodRequestStatus> var1, Pageable var2);
 

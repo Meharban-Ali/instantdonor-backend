@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@org.springframework.validation.annotation.Validated
 @RestController
 @RequestMapping(value={"/api/donor"})
 @Tag(name="Donor", description="Donor registration, search and management APIs")
@@ -125,7 +126,7 @@ public class DonorController {
     @PreAuthorize(value="hasRole('DONOR')")
     @SecurityRequirement(name="bearerAuth")
     @Operation(summary="Get my donation history")
-    public ResponseEntity<ApiResponse<Page<DonationHistoryDto>>> getMyHistory(@RequestParam(defaultValue="0") int page, @RequestParam(defaultValue="10") int size) {
+    public ResponseEntity<ApiResponse<Page<DonationHistoryDto>>> getMyHistory(@RequestParam(defaultValue="0") @jakarta.validation.constraints.Min(0L) int page, @RequestParam(defaultValue="10") @jakarta.validation.constraints.Min(1L) @jakarta.validation.constraints.Max(50L) int size) {
         Long userId = this.securityUtils.getCurrentUserId();
         DonorProfile donor = this.donorRepo.findByUserId(userId).orElseThrow(() -> ApiException.notFound("Donor profile not found"));
         PageRequest pageable = PageRequest.of((int)page, (int)size, (Sort)Sort.by((String[])new String[]{"donationDate"}).descending());

@@ -83,8 +83,8 @@ public class AdminController {
 
     @GetMapping(value={"/users"})
     @Operation(summary="Get all users \u2014 paginated + filtered", description="Filter by role or search by name/email.\nSorted by createdAt DESC.")
-    public ResponseEntity<ApiResponse<Page<UserSummaryDto>>> getUsers(@Parameter(description="Filter by role") @RequestParam(required=false) Role role, @Parameter(description="Search by name or email") @RequestParam(required=false) String search, @Parameter(description="Page number (0-based)") @RequestParam(defaultValue="0") @Min(value=0L, message="Page must be >= 0") @Min(value=0L, message="Page must be >= 0") int page, @Parameter(description="Page size (max 100)") @RequestParam(defaultValue="20") @Min(value=1L, message="Size must be >= 1") @Max(value=100L, message="Size must be <= 100") @Min(value=1L, message="Size must be >= 1") @Max(value=100L, message="Size must be <= 100") int size) {
-        log.info("Get users: role={}, search={}, page={}, size={}", new Object[]{role, search, page, size});
+    public ResponseEntity<ApiResponse<Page<UserSummaryDto>>> getUsers(@Parameter(description="Filter by role") @RequestParam(required=false) Role role, @Parameter(description="Search by name or email") @RequestParam(required=false) String search, @Parameter(description="Page number (0-based)") @RequestParam(defaultValue="0") @Min(value=0L, message="Page must be >= 0") int page, @Parameter(description="Page size (max 50)") @RequestParam(defaultValue="20") @Min(value=1L, message="Size must be >= 1") @Max(value=50L, message="Size must be <= 50") int size) {
+        log.info("Get users: role={}, search={}, page={}, size={}", role, search, page, size);
         Page<UserSummaryDto> users = this.userService.getAllUsers(role, search, page, size);
         return ResponseEntity.ok(ApiResponse.success("Users fetched: " + users.getTotalElements(), users));
     }
@@ -92,7 +92,7 @@ public class AdminController {
     @GetMapping(value={"/users/{userId}"})
     @Operation(summary="Get single user detail", description="Full user info including donor profile if exists.")
     public ResponseEntity<ApiResponse<UserSummaryDto>> getUserById(@PathVariable Long userId) {
-        log.info("Get user by id: {}", (Object)userId);
+        log.info("Get user by id: {}", userId);
         UserSummaryDto user = this.userService.getUserById(userId);
         return ResponseEntity.ok(ApiResponse.success("User fetched", user));
     }
@@ -100,7 +100,7 @@ public class AdminController {
     @PutMapping(value={"/users/{userId}/toggle-status"})
     @Operation(summary="Toggle user active status", description="Activate or deactivate a user.\n\nCannot deactivate ADMIN users.\nDeactivated users cannot login.")
     public ResponseEntity<ApiResponse<UserSummaryDto>> toggleUserStatus(@PathVariable Long userId, Authentication authentication) {
-        log.info("Toggle user status: userId={}, by={}", (Object)userId, (Object)(authentication != null ? authentication.getName() : "unknown"));
+        log.info("Toggle user status: userId={}, by={}", userId, authentication != null ? authentication.getName() : "unknown");
         UserSummaryDto user = this.userService.toggleUserStatus(userId);
         String msg = Boolean.TRUE.equals(user.getIsActive()) ? "User activated successfully" : "User deactivated successfully";
         String adminEmail = authentication != null ? authentication.getName() : "unknown";
@@ -112,7 +112,7 @@ public class AdminController {
     @PutMapping(value={"/users/{userId}/role"})
     @Operation(summary="Update user role", description="Add a role to user's roles set.\n\nExisting roles are preserved \u2014 role is added.\nBody: {\"role\": \"DONOR\", \"reason\": \"optional\"}")
     public ResponseEntity<ApiResponse<UserSummaryDto>> updateRole(@PathVariable Long userId, @Valid @RequestBody RoleUpdateRequest request, Authentication authentication) {
-        log.info("Update role: userId={}, newRole={}, reason={}, by={}", new Object[]{userId, request.getRole(), request.getReason(), authentication != null ? authentication.getName() : "unknown"});
+        log.info("Update role: userId={}, newRole={}, reason={}, by={}", userId, request.getRole(), request.getReason(), authentication != null ? authentication.getName() : "unknown");
         UserSummaryDto user = this.userService.updateUserRole(userId, request.getRole());
         String adminEmail = authentication != null ? authentication.getName() : "unknown";
         this.auditLogService.log("USER_ROLE_UPDATE", "Admin added role " + request.getRole() + " to user: " + user.getEmail() + ". Reason: " + request.getReason(), adminEmail, this.getClientIp());
@@ -121,8 +121,8 @@ public class AdminController {
 
     @GetMapping(value={"/donors"})
     @Operation(summary="Get all donors \u2014 paginated + filtered", description="Filter by city and/or blood group.\nSorted by reliability score DESC.")
-    public ResponseEntity<ApiResponse<Page<DonorSummaryDto>>> getDonors(@Parameter(description="Filter by city") @RequestParam(required=false) String city, @Parameter(description="Filter by blood group") @RequestParam(required=false) BloodGroup bloodGroup, @RequestParam(defaultValue="0") @Min(value=0L) @Min(value=0L) int page, @RequestParam(defaultValue="20") @Min(value=1L) @Max(value=100L) @Min(value=1L) @Max(value=100L) int size) {
-        log.info("Get donors: city={}, bloodGroup={}, page={}, size={}", new Object[]{city, bloodGroup, page, size});
+    public ResponseEntity<ApiResponse<Page<DonorSummaryDto>>> getDonors(@Parameter(description="Filter by city") @RequestParam(required=false) String city, @Parameter(description="Filter by blood group") @RequestParam(required=false) BloodGroup bloodGroup, @RequestParam(defaultValue="0") @Min(value=0L, message="Page must be >= 0") int page, @RequestParam(defaultValue="20") @Min(value=1L, message="Size must be >= 1") @Max(value=50L, message="Size must be <= 50") int size) {
+        log.info("Get donors: city={}, bloodGroup={}, page={}, size={}", city, bloodGroup, page, size);
         Page<DonorSummaryDto> donors = this.donorService.getAllDonors(city, bloodGroup, page, size);
         return ResponseEntity.ok(ApiResponse.success("Donors fetched: " + donors.getTotalElements(), donors));
     }

@@ -20,7 +20,7 @@ public class ApiResponse<T> {
     }
 
     public static <T> ApiResponse<T> failure(String error) {
-        return ApiResponse.<T>builder().success(false).error(error).timestamp(LocalDateTime.now()).build();
+        return ApiResponse.<T>builder().success(false).message(error).error(error).timestamp(LocalDateTime.now()).build();
     }
 
     public static <T> ApiResponseBuilder<T> builder() {

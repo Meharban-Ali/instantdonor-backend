@@ -42,21 +42,21 @@ implements ISmsService {
         String preparedMessage;
         String formattedPhone;
         if (!this.twilioClientFactory.isReady()) {
-            log.info("SMS skipped (service disabled): to={}, preview={}", (Object)toPhone, (Object)this.truncatePreview(message));
+            log.info("SMS skipped (service disabled): to={}, preview={}", com.blood_donor.utils.PiiMasker.maskPhone(toPhone), this.truncatePreview(message));
             return CompletableFuture.completedFuture(false);
         }
         try {
             formattedPhone = this.phoneFormatter.format(toPhone);
         }
         catch (IllegalArgumentException e) {
-            log.warn("SMS skipped \u2014 invalid phone: {}, error={}", (Object)toPhone, (Object)e.getMessage());
+            log.warn("SMS skipped \u2014 invalid phone: {}, error={}", com.blood_donor.utils.PiiMasker.maskPhone(toPhone), e.getMessage());
             return CompletableFuture.completedFuture(false);
         }
         try {
             preparedMessage = this.messageBuilder.prepareMessage(message);
         }
         catch (IllegalArgumentException e) {
-            log.warn("SMS skipped \u2014 empty message: {}", (Object)e.getMessage());
+            log.warn("SMS skipped \u2014 empty message: {}", e.getMessage());
             return CompletableFuture.completedFuture(false);
         }
         return this.sendWithRetry(formattedPhone, preparedMessage, 0);
@@ -65,13 +65,13 @@ implements ISmsService {
     private CompletableFuture<Boolean> sendWithRetry(String formattedPhone, String preparedMessage, int attemptNumber) {
         try {
             Message smsMessage = (Message)Message.creator((PhoneNumber)new PhoneNumber(formattedPhone), (PhoneNumber)new PhoneNumber(this.twilioProperties.getPhoneNumber()), (String)preparedMessage).create();
-            log.info("SMS sent: to={}, sid={}, attempt={}", new Object[]{formattedPhone, smsMessage.getSid(), attemptNumber + 1});
+            log.info("SMS sent: to={}, sid={}, attempt={}", com.blood_donor.utils.PiiMasker.maskPhone(formattedPhone), smsMessage.getSid(), attemptNumber + 1);
             return CompletableFuture.completedFuture(true);
         }
         catch (Exception e) {
             if (attemptNumber < 2) {
                 long delayMs = 1000L * (long)Math.pow(2.0, attemptNumber);
-                log.warn("SMS attempt {} failed: to={}, error={}. Retrying asynchronously in {}ms...", new Object[]{attemptNumber + 1, formattedPhone, e.getMessage(), delayMs});
+                log.warn("SMS attempt {} failed: to={}, error={}. Retrying asynchronously in {}ms...", attemptNumber + 1, com.blood_donor.utils.PiiMasker.maskPhone(formattedPhone), e.getMessage(), delayMs);
                 CompletableFuture<Boolean> future = new CompletableFuture<>();
                 CompletableFuture.delayedExecutor(delayMs, java.util.concurrent.TimeUnit.MILLISECONDS).execute(() -> {
                     this.sendWithRetry(formattedPhone, preparedMessage, attemptNumber + 1)
@@ -85,7 +85,7 @@ implements ISmsService {
                 });
                 return future;
             }
-            log.error("SMS failed after {} attempts: to={}, error={}", new Object[]{3, formattedPhone, e.getMessage(), e});
+            log.error("SMS failed after {} attempts: to={}, error={}", 3, com.blood_donor.utils.PiiMasker.maskPhone(formattedPhone), e.getMessage(), e);
             return CompletableFuture.completedFuture(false);
         }
     }

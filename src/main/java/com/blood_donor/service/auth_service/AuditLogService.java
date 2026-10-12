@@ -18,7 +18,7 @@ public class AuditLogService {
         try {
             AuditLog auditLog = AuditLog.builder().action(action).details(details).performedBy(performedBy).clientIp(clientIp).build();
             this.auditLogRepository.save(auditLog);
-            log.debug("Audit log saved: action={}, performedBy={}", (Object)action, (Object)performedBy);
+            log.debug("Audit log saved: action={}, performedBy={}", action, com.blood_donor.utils.PiiMasker.maskEmail(performedBy));
         }
         catch (Exception e) {
             log.error("Failed to save audit log: action={}, error={}", new Object[]{action, e.getMessage(), e});

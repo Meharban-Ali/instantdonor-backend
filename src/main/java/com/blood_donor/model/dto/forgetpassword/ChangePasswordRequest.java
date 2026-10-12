@@ -7,8 +7,9 @@ public class ChangePasswordRequest {
     @NotBlank(message="Current password is required")
     private @NotBlank(message="Current password is required") String currentPassword;
     @NotBlank(message="New password is required")
-    @Size(min=6, message="New password must be at least 6 characters")
-    private @NotBlank(message="New password is required") @Size(min=6, message="New password must be at least 6 characters") String newPassword;
+    @Size(min=8, message="New password must be at least 8 characters")
+    @jakarta.validation.constraints.Pattern(regexp="^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!._-]).{8,}$", message="Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character")
+    private String newPassword;
 
     public String getCurrentPassword() {
         return this.currentPassword;

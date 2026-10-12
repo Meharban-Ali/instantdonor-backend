@@ -67,10 +67,40 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.failure("Access Denied: insufficient permission"));
     }
 
-    // Catch-all
-    @ExceptionHandler(Exception.class) // ✅ FIX 2
+    // Database conflict / duplicate key — 409 Conflict
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<?>> handleDataIntegrityViolation(
+            org.springframework.dao.DataIntegrityViolationException exp) {
+        log.warn("Database constraint violation: {}", exp.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiResponse.failure("Data conflict: resource already exists or violates integrity rules"));
+    }
+
+    // Constraint violations (e.g. @RequestParam validation) — 400 Bad Request
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse<?>> handleConstraintViolation(
+            jakarta.validation.ConstraintViolationException exp) {
+        log.warn("Constraint violation: {}", exp.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.failure("Validation Failed: " + exp.getMessage()));
+    }
+
+    // Illegal argument — 400 Bad Request
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<?>> handleIllegalArgument(
+            IllegalArgumentException exp) {
+        log.warn("Illegal argument: {}", exp.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.failure(exp.getMessage()));
+    }
+
+    // Catch-all — 500 Internal Server Error (Zero stack trace leak)
+    @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleGenericsException(Exception exp) {
-        log.error("Unexpected Error: ", exp); // ✅ FIX 3
+        log.error("Unexpected Error: ", exp);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.failure("Something went wrong, please try again"));

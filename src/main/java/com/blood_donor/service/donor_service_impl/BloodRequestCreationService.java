@@ -37,6 +37,10 @@ implements IBloodRequestCreationService {
     private int expiryHoursUrgent;
     @Value(value="${app.request.expiry-hours-critical:6}")
     private int expiryHoursCritical;
+    @Value(value="${app.request.max-active-per-user:3}")
+    private int maxActiveRequestsPerUser = 3;
+    @Value(value="${app.request.max-daily-per-user:5}")
+    private int maxDailyRequestsPerUser = 5;
 
     @Override
     @Transactional
@@ -46,8 +50,20 @@ implements IBloodRequestCreationService {
         User currentUser = (User)this.userRepo.findById(userId).orElseThrow(() -> ApiException.notFound("User not found"));
 
         java.util.List<BloodRequestStatus> activeStatuses = java.util.List.of(BloodRequestStatus.PENDING, BloodRequestStatus.ACTIVE, BloodRequestStatus.MATCHING);
+
         if (this.requestRepo.existsByCreatedByIdAndStatusInAndBloodGroup(userId, activeStatuses, dto.getBloodGroup())) {
             throw ApiException.badRequest("You already have an active blood request for blood group " + dto.getBloodGroup().getDisplayName());
+        }
+
+        long activeCount = this.requestRepo.countByCreatedByIdAndStatusIn(userId, activeStatuses);
+        if (activeCount >= this.maxActiveRequestsPerUser) {
+            throw ApiException.badRequest("You cannot have more than " + this.maxActiveRequestsPerUser + " active blood requests simultaneously");
+        }
+
+        LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
+        long dailyCount = this.requestRepo.countByCreatedByIdAndCreatedAtAfter(userId, startOfDay);
+        if (dailyCount >= this.maxDailyRequestsPerUser) {
+            throw ApiException.badRequest("Daily blood request creation limit (" + this.maxDailyRequestsPerUser + ") reached");
         }
 
         int expiryHours = this.getExpiryHours(dto.getUrgency());

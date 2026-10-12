@@ -15,10 +15,21 @@ public class NotificationProperties {
     @Max(value=50L)
     private @Min(value=1L) @Max(value=50L) int maxDonorsToNotify = 10;
     @Min(value=1L)
+    @Max(value=50L)
+    private @Min(value=1L) @Max(value=50L) int maxSmsRecipients = 20;
+    @Min(value=1L)
     @Max(value=200L)
     private @Min(value=1L) @Max(value=200L) double searchRadiusKm = 25.0;
     private boolean fallbackEnabled = true;
     private String emailSubjectPrefix = "[Blood Donor Network]";
+
+    public int getMaxSmsRecipients() {
+        return this.maxSmsRecipients;
+    }
+
+    public void setMaxSmsRecipients(int maxSmsRecipients) {
+        this.maxSmsRecipients = maxSmsRecipients;
+    }
 
     public boolean isEnabled() {
         return this.enabled;

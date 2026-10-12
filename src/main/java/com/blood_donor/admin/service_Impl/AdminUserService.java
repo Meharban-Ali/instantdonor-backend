@@ -45,6 +45,11 @@ implements IAdminUserService {
     @CacheEvict(value={"adminDashboard"}, allEntries=true)
     public UserSummaryDto toggleUserStatus(Long userId) {
         User user = this.findUserOrThrow(userId);
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalEmail = (auth != null) ? auth.getName() : null;
+        if (currentPrincipalEmail != null && user.getEmail().equalsIgnoreCase(currentPrincipalEmail)) {
+            throw ApiException.badRequest("Administrators cannot deactivate their own account");
+        }
         if (user.getRoles() != null && user.getRoles().contains((Object)Role.ADMIN)) {
             throw ApiException.forbidden("Cannot deactivate admin user");
         }
@@ -59,9 +64,25 @@ implements IAdminUserService {
     @CacheEvict(value={"adminDashboard"}, allEntries=true)
     public UserSummaryDto updateUserRole(Long userId, Role newRole) {
         User user = this.findUserOrThrow(userId);
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalEmail = (auth != null) ? auth.getName() : null;
+
         if (user.getRoles() == null) {
             user.setRoles(new HashSet<Role>());
         }
+
+        // Demoting an existing admin
+        if (user.hasRole(Role.ADMIN) && !Role.ADMIN.equals(newRole)) {
+            if (currentPrincipalEmail != null && user.getEmail().equalsIgnoreCase(currentPrincipalEmail)) {
+                throw ApiException.badRequest("Administrators cannot demote their own account");
+            }
+            long activeAdminCount = this.userRepo.countByRoleAndIsActiveTrue(Role.ADMIN);
+            if (activeAdminCount <= 1) {
+                throw ApiException.badRequest("Cannot demote the last remaining active administrator");
+            }
+            user.getRoles().remove(Role.ADMIN);
+        }
+
         user.getRoles().add(newRole);
         User saved = (User)this.userRepo.save(user);
         log.info("User role updated: userId={}, newRole={}, allRoles={}", new Object[]{userId, newRole, saved.getRoles()});

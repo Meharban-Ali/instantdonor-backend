@@ -66,16 +66,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 try {
                     if (Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:token:" + token))) {
                         log.warn("Attempted request with blacklisted access token");
-                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        response.setContentType("application/json");
-                        response.getWriter().write("{\"error\":\"Token is blacklisted\"}");
+                        SecurityResponseHelper.writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Token is blacklisted");
                         return;
                     }
                 } catch (Exception e) {
                     log.error("Redis token blacklist check failed, fail-closed policy enforced: {}", e.getMessage());
-                    response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-                    response.setContentType("application/json");
-                    response.getWriter().write("{\"error\":\"Authentication service temporarily unavailable (blacklist check failure)\"}");
+                    SecurityResponseHelper.writeError(response, HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Authentication service temporarily unavailable (blacklist check failure)");
                     return;
                 }
             }

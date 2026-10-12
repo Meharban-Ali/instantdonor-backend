@@ -135,12 +135,27 @@ public class AuthController {
         if (request.getName() != null) {
             user.setName(request.getName());
         }
-        if (request.getPhone() != null) {
+        if (request.getPhone() != null && !request.getPhone().isBlank()) {
+            if (this.userRepository.existsByPhone(request.getPhone()) && !request.getPhone().equals(user.getPhone())) {
+                throw ApiException.conflict("Phone number is already associated with another account");
+            }
             user.setPhone(request.getPhone());
         }
         this.userRepository.save(user);
         UserProfileResponse response = UserProfileResponse.builder().id(user.getId()).name(user.getName()).email(user.getEmail()).phone(user.getPhone()).roles(user.getRoles()).isActive(user.getIsActive()).createdAt(user.getCreatedAt()).build();
         return ResponseEntity.ok(ApiResponse.success("Profile updated", response));
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping(value={"/me"})
+    @PreAuthorize(value="isAuthenticated()")
+    @SecurityRequirement(name="bearerAuth")
+    @Operation(summary="Delete and anonymize my account (DPDP Right to Erasure)")
+    public ResponseEntity<ApiResponse<String>> deleteAccount(@RequestHeader(value="Authorization", required=false) String authHeader) {
+        Long userId = this.securityUtils.getCurrentUserId();
+        String accessToken = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        this.authService.deleteAccount(userId, accessToken);
+        this.auditLogService.log("USER_ACCOUNT_DELETE", "User requested account erasure: id=" + userId, "userId:" + userId, this.getClientIp());
+        return ResponseEntity.ok(ApiResponse.success("Account successfully anonymized and deleted", "ACCOUNT_DELETED"));
     }
 
     @PutMapping(value={"/change-password"})

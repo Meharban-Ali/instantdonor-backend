@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+
+    <!-- 1. Spring Framework Unsafe Deserialization via Jackson JMS Converters -->
+    <suppress>
+        <notes><![CDATA[
+            CVE-2026-41855: Affects Spring Framework JMS converters (MappingJackson2MessageConverter / JacksonJsonMessageConverter).
+            False positive / Non-applicable for this application:
+            The application does NOT include spring-jms, has no JMS message broker connection,
+            and does not deserialize JMS messages. Requires Spring Framework 6.2.19+ in full framework upgrade.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-.*$</packageUrl>
+        <cve>CVE-2026-41855</cve>
+    </suppress>
+
+    <!-- 2. Spring Framework Improper Path Limitation in XsltView -->
+    <suppress>
+        <notes><![CDATA[
+            CVE-2026-47884: Affects org.springframework.web.servlet.view.xslt.XsltView when rendering dynamic XSLT views.
+            False positive / Non-applicable for this application:
+            The application is a pure REST JSON API utilizing @RestController and Jackson serialization.
+            No XsltView or XSLT templates are configured or served. Requires Spring Framework 6.2.20+ in full framework upgrade.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-.*$</packageUrl>
+        <cve>CVE-2026-47884</cve>
+    </suppress>
+
+    <!-- 3. Server-Sent Event Stream Corruption in Functional Web Framework -->
+    <suppress>
+        <notes><![CDATA[
+            CVE-2026-59313: Affects Spring Web MVC functional routing (RouterFunction) using ServerResponse.sse().
+            False positive / Non-applicable for this application:
+            The application uses standard Spring MVC @RestController with JSON DTOs;
+            no functional router functions or plain-text Server-Sent Event (SSE) streams are utilized.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-.*$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+    </suppress>
+
+    <!-- 4. Spring Security Potential Misconfiguration when using withIssuerLocation -->
+    <suppress>
+        <notes><![CDATA[
+            CVE-2026-22748: Affects NimbusJwtDecoder / NimbusReactiveJwtDecoder when using withIssuerLocation().
+            False positive / Non-applicable for this application:
+            The application uses a custom JJWT (io.jsonwebtoken) JwtTokenProvider with HMAC-SHA symmetric keys.
+            Spring Security OAuth2 Resource Server and NimbusJwtDecoder are not included or used.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring-security-.*$</packageUrl>
+        <cve>CVE-2026-22748</cve>
+    </suppress>
+
+    <!-- 5. Client-Side Swagger UI DOMPurify Findings -->
+    <suppress>
+        <notes><![CDATA[
+            DOMPurify vulnerabilities embedded in swagger-ui-5.13.0.jar (webjar).
+            Mitigated by architecture:
+            Swagger UI and API docs are explicitly disabled in production (springdoc.swagger-ui.enabled=false,
+            springdoc.api-docs.enabled=false). This frontend asset is never exposed to public or production clients.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.webjars/swagger-ui@.*$</packageUrl>
+        <vulnerabilityName regex="true">.*</vulnerabilityName>
+    </suppress>
+
+</suppressions>

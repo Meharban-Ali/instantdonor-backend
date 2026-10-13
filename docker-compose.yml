@@ -160,6 +160,8 @@ services:
     networks:
       blood_donor_net:
         ipv4_address: 172.28.0.10
+        aliases:
+          - nginx
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/actuator/health || exit 1"]
       interval: 15s

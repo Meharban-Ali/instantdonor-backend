@@ -298,6 +298,52 @@ public class RealDatabasePhase3HardeningTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("Distributed Attack: Multiple IPs attacking one email triggers metric/log alert without locking innocent victim")
+    void testDistributedBruteForceDoesNotLockUserAndRecordsAlert() throws Exception {
+        baseUserRepo.save(User.builder()
+                .name("Distributed Target")
+                .email("dist_target@example.com")
+                .password(passwordEncoder.encode("Password@123"))
+                .phone("+919876543299")
+                .roles(new HashSet<>(Set.of(Role.USER)))
+                .isActive(true)
+                .build());
+
+        LoginRequest wrongReq = new LoginRequest();
+        wrongReq.setEmail("dist_target@example.com");
+        wrongReq.setPassword("WrongPassword@999");
+
+        // Simulate 12 different IPs each failing once against this email
+        for (int i = 1; i <= 12; i++) {
+            final String attackerIp = "198.51.100." + i;
+            mockMvc.perform(post("/api/auth/login")
+                            .with(req -> {
+                                req.setRemoteAddr(attackerIp);
+                                return req;
+                            })
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(wrongReq)))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        // Legitimate victim logs in from home IP: MUST SUCCEED (no DoS hard lock)
+        LoginRequest correctReq = new LoginRequest();
+        correctReq.setEmail("dist_target@example.com");
+        correctReq.setPassword("Password@123");
+
+        mockMvc.perform(post("/api/auth/login")
+                        .with(req -> {
+                            req.setRemoteAddr("203.0.113.50");
+                            return req;
+                        })
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(correctReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.accessToken").exists());
+    }
+
+    @Test
     @DisplayName("DPDP Right to Erasure: User can delete and anonymize their account")
     void testDpdpRightToErasure() throws Exception {
         User user = baseUserRepo.save(User.builder()

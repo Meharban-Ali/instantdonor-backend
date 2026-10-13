@@ -164,4 +164,41 @@ docker compose up -d --build
 * **Security Headers**: HSTS, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`.
 * **PII Redaction**: Phone numbers and emails are masked in all audit logs, trace MDC logs, and external API previews.
 * **Right to Erasure (DPDP)**: `DELETE /api/auth/me` anonymizes user records, scrambles credentials, and cancels pending requests.
-* **Account Lockout**: 5 consecutive failed login attempts trigger an automatic 15-minute lockout (HTTP 429).
+* **Account Lockout**: 5 consecutive failed login attempts trigger an automatic 15-minute lockout (HTTP 429) keyed by `(clientIp, email)` pair to prevent victim DoS. Distributed attacks log high-severity alerts and increment custom metrics without locking innocent victims.
+
+---
+
+## 🔐 Production TLS & Reverse Proxy Setup (Nginx)
+
+The production Docker Compose architecture isolates the backend within an internal Docker network (`blood_donor_net`). Only Nginx is exposed to the public Internet, terminating TLS and forwarding sanitized headers (`X-Real-IP`, `X-Forwarded-For`, `X-Forwarded-Proto`) to Spring Boot.
+
+### Option A: Let's Encrypt Automated Certificates (Certbot)
+
+1. **Obtain Certificates using Certbot**:
+   ```bash
+   sudo certbot certonly --webroot \
+     -w /var/www/certbot \
+     -d api.blooddonor.org \
+     --email admin@blooddonor.org \
+     --agree-tos --no-eff-email
+   ```
+2. **Mount Certificates into Nginx**:
+   Mount the issued certificates into `./nginx/certs/`:
+   ```bash
+   mkdir -p ./nginx/certs
+   sudo cp /etc/letsencrypt/live/api.blooddonor.org/fullchain.pem ./nginx/certs/fullchain.pem
+   sudo cp /etc/letsencrypt/live/api.blooddonor.org/privkey.pem ./nginx/certs/privkey.pem
+   chmod 600 ./nginx/certs/privkey.pem
+   ```
+3. **Automated Renewal Cron**:
+   ```bash
+   0 3 * * * certbot renew --post-hook "docker compose exec nginx nginx -s reload"
+   ```
+
+### Option B: Cloudflare Origin CA (Recommended for Cloudflare Pro/Free Proxies)
+
+1. In Cloudflare Dashboard, go to **SSL/TLS -> Origin Server** and click **Create Certificate**.
+2. Save the Origin Certificate as `./nginx/certs/fullchain.pem` and the Private Key as `./nginx/certs/privkey.pem`.
+3. In Cloudflare **SSL/TLS encryption mode**, select **Full (strict)**.
+4. Set Cloudflare DNS A/AAAA records for your domain with proxy status **Proxied (Orange Cloud)**.
+5. Cloudflare automatically handles public HTTPS/TLS 1.3, DDoS mitigation, and forwards the genuine client IP via `CF-Connecting-IP` / `X-Forwarded-For`.

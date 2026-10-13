@@ -121,18 +121,19 @@ public class TrustedProxyAndRateLimitSpoofingTest {
     }
 
     @Test
-    @DisplayName("internal-proxies regex strictly trusts only Docker Compose Nginx subnet (172.28.x.x) and loopback")
+    @DisplayName("internal-proxies regex strictly trusts only Docker Compose Nginx exact IP (172.28.0.10) and loopback")
     void testInternalProxiesRegexMatchesOnlyComposeNginxSubnetAndLoopback() {
-        String internalProxiesPattern = "127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|0:0:0:0:0:0:0:1|172\\.28\\.\\d{1,3}\\.\\d{1,3}";
+        String internalProxiesPattern = "127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|0:0:0:0:0:0:0:1|172\\.28\\.0\\.10";
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(internalProxiesPattern);
 
-        // Trusted proxies: compose nginx and loopback
+        // Trusted proxies: exact compose nginx IP and loopback
         assertThat(pattern.matcher("172.28.0.10").matches()).isTrue();
-        assertThat(pattern.matcher("172.28.1.1").matches()).isTrue();
         assertThat(pattern.matcher("127.0.0.1").matches()).isTrue();
         assertThat(pattern.matcher("0:0:0:0:0:0:0:1").matches()).isTrue();
 
-        // Untrusted callers: public IPs and non-whitelisted private subnets
+        // Untrusted callers: other containers on 172.28 subnet, public IPs, and non-whitelisted private subnets
+        assertThat(pattern.matcher("172.28.0.11").matches()).isFalse();
+        assertThat(pattern.matcher("172.28.1.1").matches()).isFalse();
         assertThat(pattern.matcher("198.51.100.55").matches()).isFalse();
         assertThat(pattern.matcher("203.0.113.10").matches()).isFalse();
         assertThat(pattern.matcher("192.168.1.100").matches()).isFalse();

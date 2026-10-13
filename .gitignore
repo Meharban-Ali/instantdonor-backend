@@ -12,6 +12,7 @@ application.properties
 *.key
 *.p12
 *.jks
+nginx/certs/
 
 # ── JAVA / MAVEN ─────────────────────────────
 target/

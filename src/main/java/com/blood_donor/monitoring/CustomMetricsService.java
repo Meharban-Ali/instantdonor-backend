@@ -12,6 +12,7 @@ public class CustomMetricsService {
     private final Counter aiFallbackCounter;
     private final Counter smsSuccessCounter;
     private final Counter smsFailureCounter;
+    private final Counter distributedAttackCounter;
 
     public CustomMetricsService(MeterRegistry registry) {
         this.authFailureCounter = Counter.builder("auth.failures")
@@ -33,6 +34,10 @@ public class CustomMetricsService {
         this.smsFailureCounter = Counter.builder("sms.delivery.failure")
                 .description("Total number of failed SMS delivery attempts")
                 .register(registry);
+
+        this.distributedAttackCounter = Counter.builder("auth.distributed_attack.alerts")
+                .description("Total number of distributed brute-force attack alerts detected")
+                .register(registry);
     }
 
     public void recordAuthFailure() {
@@ -53,5 +58,9 @@ public class CustomMetricsService {
 
     public void recordSmsFailure() {
         this.smsFailureCounter.increment();
+    }
+
+    public void recordDistributedAttackAlert() {
+        this.distributedAttackCounter.increment();
     }
 }

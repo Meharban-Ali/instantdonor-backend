@@ -57,6 +57,7 @@ public class AuthService {
     private long loginEmailRefillInterval;
     private final java.util.concurrent.ConcurrentHashMap<String, Long> ipEmailLockouts = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.concurrent.ConcurrentHashMap<String, Integer> ipEmailFailedAttempts = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentHashMap<String, Integer> globalEmailFailedAttempts = new java.util.concurrent.ConcurrentHashMap<>();
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -142,6 +143,7 @@ public class AuthService {
         String compositeKey = ip + ":" + email;
         String failedKey = "lockout:failed:ip_email:" + compositeKey;
         String lockKey = "lockout:ip_email:" + compositeKey;
+        String globalEmailFailKey = "auth:failed:email:" + email;
         int count = 1;
         if (this.redisTemplate != null) {
             try {
@@ -153,6 +155,17 @@ public class AuthService {
                     log.warn("(IP, email) pair temporarily throttled (5 failed attempts) for IP {} and email: {}",
                             ip, com.blood_donor.utils.PiiMasker.maskEmail(email));
                 }
+
+                // Distributed brute-force detection across multiple IPs: log alert + metric, but NO hard lockout
+                Long globalCount = this.redisTemplate.opsForValue().increment(globalEmailFailKey);
+                this.redisTemplate.expire(globalEmailFailKey, 15, TimeUnit.MINUTES);
+                if (globalCount != null && globalCount >= 10) {
+                    log.warn("SECURITY ALERT: Potential distributed brute-force attack detected on email {} across multiple IPs (global failures: {}). No hard lockout enforced on legitimate user.",
+                            com.blood_donor.utils.PiiMasker.maskEmail(email), globalCount);
+                    if (this.customMetricsService != null) {
+                        this.customMetricsService.recordDistributedAttackAlert();
+                    }
+                }
                 return;
             } catch (Exception e) {
                 log.warn("Redis recordFailedLogin failed, using memory: {}", e.getMessage());
@@ -163,6 +176,15 @@ public class AuthService {
             this.ipEmailLockouts.put(compositeKey, System.currentTimeMillis() + (15 * 60 * 1000L));
             log.warn("(IP, email) pair temporarily throttled in-memory (5 failed attempts) for IP {} and email: {}",
                     ip, com.blood_donor.utils.PiiMasker.maskEmail(email));
+        }
+
+        int globalCountMem = this.globalEmailFailedAttempts.merge(email, 1, Integer::sum);
+        if (globalCountMem >= 10) {
+            log.warn("SECURITY ALERT: Potential distributed brute-force attack detected on email {} across multiple IPs (global in-memory failures: {}). No hard lockout enforced on legitimate user.",
+                    com.blood_donor.utils.PiiMasker.maskEmail(email), globalCountMem);
+            if (this.customMetricsService != null) {
+                this.customMetricsService.recordDistributedAttackAlert();
+            }
         }
     }
 

@@ -272,13 +272,29 @@ public class RealDatabasePhase3HardeningTest extends BaseIntegrationTest {
                     .andExpect(status().isUnauthorized());
         }
 
-        // 6th attempt must be locked out with 429
+        // 6th attempt from same IP must be locked out with 429
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(wrongReq)))
                 .andExpect(status().isTooManyRequests())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value(containsString("Account temporarily locked")));
+
+        // Legitimate user on a different IP is NOT blocked: (IP, email) throttle prevents DoS
+        LoginRequest correctReq = new LoginRequest();
+        correctReq.setEmail("lockout_test@example.com");
+        correctReq.setPassword("Password@123");
+
+        mockMvc.perform(post("/api/auth/login")
+                        .with(req -> {
+                            req.setRemoteAddr("203.0.113.10");
+                            return req;
+                        })
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(correctReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.accessToken").exists());
     }
 
     @Test

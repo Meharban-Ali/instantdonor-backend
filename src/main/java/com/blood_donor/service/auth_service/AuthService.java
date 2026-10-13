@@ -20,6 +20,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -54,9 +55,8 @@ public class AuthService {
     private long loginEmailCapacity;
     @Value(value="${rate-limiting.login.refill-interval:60}")
     private long loginEmailRefillInterval;
-    private final java.util.concurrent.ConcurrentHashMap<String, EmailTokenBucket> emailBuckets = new java.util.concurrent.ConcurrentHashMap<>();
-    private final java.util.concurrent.ConcurrentHashMap<String, Long> accountLockouts = new java.util.concurrent.ConcurrentHashMap<>();
-    private final java.util.concurrent.ConcurrentHashMap<String, Integer> failedAttempts = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentHashMap<String, Long> ipEmailLockouts = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentHashMap<String, Integer> ipEmailFailedAttempts = new java.util.concurrent.ConcurrentHashMap<>();
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -74,21 +74,22 @@ public class AuthService {
 
     @Transactional(readOnly=true)
     public AuthResponse login(LoginRequest request) {
+        return login(request, getCurrentClientIp());
+    }
+
+    @Transactional(readOnly=true)
+    public AuthResponse login(LoginRequest request, String clientIp) {
         String normalizedEmail = (request.getEmail() != null) ? request.getEmail().trim().toLowerCase() : "";
+        String effectiveIp = (clientIp != null && !clientIp.isBlank()) ? clientIp.trim() : "127.0.0.1";
+
         if (!normalizedEmail.isEmpty()) {
-            if (this.isAccountLocked(normalizedEmail)) {
-                log.warn("Login blocked: account temporarily locked for email: {}", com.blood_donor.utils.PiiMasker.maskEmail(normalizedEmail));
+            if (this.isThrottled(effectiveIp, normalizedEmail)) {
+                log.warn("Login blocked: (IP, email) pair temporarily throttled for IP {} and email: {}",
+                        effectiveIp, com.blood_donor.utils.PiiMasker.maskEmail(normalizedEmail));
                 if (this.customMetricsService != null) {
                     this.customMetricsService.recordRateLimit429();
                 }
                 throw ApiException.tooManyRequests("Account temporarily locked due to repeated failed logins. Please try again after 15 minutes or reset your password.");
-            }
-            if (!this.checkEmailRateLimit(normalizedEmail)) {
-                log.warn("Rate limit exceeded for login email: {}", com.blood_donor.utils.PiiMasker.maskEmail(normalizedEmail));
-                if (this.customMetricsService != null) {
-                    this.customMetricsService.recordRateLimit429();
-                }
-                throw ApiException.tooManyRequests("Too many login attempts for this account. Please try again later.");
             }
         }
 
@@ -99,13 +100,13 @@ public class AuthService {
                 this.customMetricsService.recordAuthFailure();
             }
             if (!normalizedEmail.isEmpty()) {
-                this.recordFailedLogin(normalizedEmail);
+                this.recordFailedLogin(effectiveIp, normalizedEmail);
             }
             throw e;
         }
 
         if (!normalizedEmail.isEmpty()) {
-            this.clearFailedLogins(normalizedEmail);
+            this.clearFailedLogins(effectiveIp, normalizedEmail);
         }
 
         User user = this.userRepository.findByEmail(request.getEmail()).orElseThrow(() -> ApiException.notFound("User not found"));
@@ -116,8 +117,9 @@ public class AuthService {
         return this.buildAuthResponse(user);
     }
 
-    private boolean isAccountLocked(String email) {
-        String lockKey = "lockout:account:" + email;
+    private boolean isThrottled(String ip, String email) {
+        String compositeKey = ip + ":" + email;
+        String lockKey = "lockout:ip_email:" + compositeKey;
         if (this.redisTemplate != null) {
             try {
                 return Boolean.TRUE.equals(this.redisTemplate.hasKey(lockKey));
@@ -125,20 +127,21 @@ public class AuthService {
                 log.warn("Redis lockout check failed, checking memory: {}", e.getMessage());
             }
         }
-        Long lockedUntil = this.accountLockouts.get(email);
+        Long lockedUntil = this.ipEmailLockouts.get(compositeKey);
         if (lockedUntil != null) {
             if (System.currentTimeMillis() < lockedUntil) {
                 return true;
             } else {
-                this.accountLockouts.remove(email);
+                this.ipEmailLockouts.remove(compositeKey);
             }
         }
         return false;
     }
 
-    private void recordFailedLogin(String email) {
-        String failedKey = "lockout:failed:" + email;
-        String lockKey = "lockout:account:" + email;
+    private void recordFailedLogin(String ip, String email) {
+        String compositeKey = ip + ":" + email;
+        String failedKey = "lockout:failed:ip_email:" + compositeKey;
+        String lockKey = "lockout:ip_email:" + compositeKey;
         int count = 1;
         if (this.redisTemplate != null) {
             try {
@@ -147,23 +150,26 @@ public class AuthService {
                 this.redisTemplate.expire(failedKey, 15, TimeUnit.MINUTES);
                 if (count >= 5) {
                     this.redisTemplate.opsForValue().set(lockKey, "locked", 15, TimeUnit.MINUTES);
-                    log.warn("Account temporarily locked (5 failed attempts) for: {}", com.blood_donor.utils.PiiMasker.maskEmail(email));
+                    log.warn("(IP, email) pair temporarily throttled (5 failed attempts) for IP {} and email: {}",
+                            ip, com.blood_donor.utils.PiiMasker.maskEmail(email));
                 }
                 return;
             } catch (Exception e) {
                 log.warn("Redis recordFailedLogin failed, using memory: {}", e.getMessage());
             }
         }
-        count = this.failedAttempts.merge(email, 1, Integer::sum);
+        count = this.ipEmailFailedAttempts.merge(compositeKey, 1, Integer::sum);
         if (count >= 5) {
-            this.accountLockouts.put(email, System.currentTimeMillis() + (15 * 60 * 1000L));
-            log.warn("Account temporarily locked in-memory (5 failed attempts) for: {}", com.blood_donor.utils.PiiMasker.maskEmail(email));
+            this.ipEmailLockouts.put(compositeKey, System.currentTimeMillis() + (15 * 60 * 1000L));
+            log.warn("(IP, email) pair temporarily throttled in-memory (5 failed attempts) for IP {} and email: {}",
+                    ip, com.blood_donor.utils.PiiMasker.maskEmail(email));
         }
     }
 
-    private void clearFailedLogins(String email) {
-        String failedKey = "lockout:failed:" + email;
-        String lockKey = "lockout:account:" + email;
+    private void clearFailedLogins(String ip, String email) {
+        String compositeKey = ip + ":" + email;
+        String failedKey = "lockout:failed:ip_email:" + compositeKey;
+        String lockKey = "lockout:ip_email:" + compositeKey;
         if (this.redisTemplate != null) {
             try {
                 this.redisTemplate.delete(java.util.List.of(failedKey, lockKey));
@@ -171,100 +177,23 @@ public class AuthService {
                 log.warn("Redis clearFailedLogins failed: {}", e.getMessage());
             }
         }
-        this.failedAttempts.remove(email);
-        this.accountLockouts.remove(email);
+        this.ipEmailFailedAttempts.remove(compositeKey);
+        this.ipEmailLockouts.remove(compositeKey);
     }
 
-    private boolean checkEmailRateLimit(String email) {
-        String key = "rate:limit:login:email:" + email;
-        if (this.redisTemplate != null) {
-            try {
-                return this.tryConsumeEmailRedis(key, this.loginEmailCapacity);
-            } catch (Exception e) {
-                log.warn("Redis email rate limiting failed, falling back to memory: {}", e.getMessage());
-                return this.tryConsumeEmailLocal(key, this.loginEmailCapacity);
-            }
-        }
-        return this.tryConsumeEmailLocal(key, this.loginEmailCapacity);
-    }
-
-    private boolean tryConsumeEmailLocal(String key, long capacity) {
-        double refillRatePerMs = (double) capacity / (this.loginEmailRefillInterval * 1000.0);
-        EmailTokenBucket bucket = this.emailBuckets.computeIfAbsent(key, k -> new EmailTokenBucket(capacity));
-        return bucket.tryConsume(refillRatePerMs);
-    }
-
-    private synchronized boolean tryConsumeEmailRedis(String key, long capacity) {
-        long now = System.currentTimeMillis();
-        double refillRatePerMs = (double) capacity / (this.loginEmailRefillInterval * 1000.0);
-        java.util.Map<Object, Object> data = this.redisTemplate.opsForHash().entries(key);
-        double tokens;
-        long lastRefillTime;
-        if (data == null || data.isEmpty()) {
-            tokens = capacity;
-            lastRefillTime = now;
-        } else {
-            Object tokensObj = data.get("tokens");
-            Object lastRefillObj = data.get("lastRefillTime");
-            if (tokensObj == null || lastRefillObj == null) {
-                tokens = capacity;
-                lastRefillTime = now;
-            } else {
-                try {
-                    tokens = Double.parseDouble(tokensObj.toString());
-                    lastRefillTime = Long.parseLong(lastRefillObj.toString());
-                } catch (NumberFormatException e) {
-                    tokens = capacity;
-                    lastRefillTime = now;
+    private String getCurrentClientIp() {
+        try {
+            org.springframework.web.context.request.RequestAttributes attribs =
+                    org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+            if (attribs instanceof org.springframework.web.context.request.ServletRequestAttributes) {
+                HttpServletRequest request = ((org.springframework.web.context.request.ServletRequestAttributes) attribs).getRequest();
+                if (request != null && request.getRemoteAddr() != null) {
+                    return request.getRemoteAddr();
                 }
             }
+        } catch (Exception ignored) {
         }
-        long timePassed = now - lastRefillTime;
-        if (timePassed > 0) {
-            tokens = Math.min((double)capacity, tokens + (double)timePassed * refillRatePerMs);
-            lastRefillTime = now;
-        }
-        if (tokens >= 1.0) {
-            tokens -= 1.0;
-            java.util.Map<String, Object> update = new java.util.HashMap<>();
-            update.put("tokens", tokens);
-            update.put("lastRefillTime", lastRefillTime);
-            this.redisTemplate.opsForHash().putAll(key, update);
-            this.redisTemplate.expire(key, this.loginEmailRefillInterval, TimeUnit.SECONDS);
-            return true;
-        }
-        java.util.Map<String, Object> update = new java.util.HashMap<>();
-        update.put("tokens", tokens);
-        update.put("lastRefillTime", lastRefillTime);
-        this.redisTemplate.opsForHash().putAll(key, update);
-        this.redisTemplate.expire(key, this.loginEmailRefillInterval, TimeUnit.SECONDS);
-        return false;
-    }
-
-    private static class EmailTokenBucket {
-        private final long capacity;
-        private double tokens;
-        private long lastRefillTime;
-
-        public EmailTokenBucket(long capacity) {
-            this.capacity = capacity;
-            this.tokens = capacity;
-            this.lastRefillTime = System.currentTimeMillis();
-        }
-
-        public synchronized boolean tryConsume(double refillRatePerMs) {
-            long now = System.currentTimeMillis();
-            long timePassed = now - this.lastRefillTime;
-            if (timePassed > 0) {
-                this.tokens = Math.min((double)this.capacity, this.tokens + (double)timePassed * refillRatePerMs);
-                this.lastRefillTime = now;
-            }
-            if (this.tokens >= 1.0) {
-                this.tokens -= 1.0;
-                return true;
-            }
-            return false;
-        }
+        return "127.0.0.1";
     }
 
     @Transactional

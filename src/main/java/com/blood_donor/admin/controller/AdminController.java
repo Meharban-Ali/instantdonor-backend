@@ -57,11 +57,7 @@ public class AdminController {
     private final HttpServletRequest httpServletRequest;
 
     private String getClientIp() {
-        String xfHeader = this.httpServletRequest.getHeader("X-Forwarded-For");
-        if (xfHeader == null || xfHeader.isEmpty()) {
-            return this.httpServletRequest.getRemoteAddr();
-        }
-        return xfHeader.split(",")[0].trim();
+        return this.httpServletRequest.getRemoteAddr();
     }
 
     @GetMapping(value={"/dashboard"})

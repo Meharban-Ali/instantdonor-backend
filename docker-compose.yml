@@ -18,7 +18,9 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - blood_donor_net
+      blood_donor_net:
+        aliases:
+          - mysql
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD} || exit 1"]
       interval: 10s
@@ -41,7 +43,9 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - blood_donor_net
+      blood_donor_net:
+        aliases:
+          - redis
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD:-12345} ping | grep PONG || exit 1"]
       interval: 10s
@@ -74,6 +78,10 @@ services:
       - JWT_SECRET=${JWT_SECRET:-ThisIsADefaultProductionSecretKeyWithAtLeastFortyEightBytesForSha384!}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Admin@StrongPass123!}
       - AI_SERVICE_URL=${AI_SERVICE_URL:-http://ai-service:8000}
+      - RATE_LIMITING_ENABLED=${RATE_LIMITING_ENABLED:-true}
+      - RATE_LIMITING_CAPACITY=${RATE_LIMITING_CAPACITY:-1000}
+      - RATE_LIMITING_LOGIN_IP_CAPACITY=${RATE_LIMITING_LOGIN_IP_CAPACITY:-1000}
+      - RATE_LIMITING_LOGIN_EMAIL_CAPACITY=${RATE_LIMITING_LOGIN_EMAIL_CAPACITY:-500}
     depends_on:
       mysql:
         condition: service_healthy
@@ -133,6 +141,29 @@ services:
       timeout: 5s
       retries: 3
 
+  # ────────────────────────────────────────────────────────────
+  # 5. Nginx Reverse Proxy Service
+  # ────────────────────────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: blood_donor_nginx
+    restart: unless-stopped
+    ports:
+      - "${HOST_NGINX_PORT:-8088}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      blood_donor_net:
+        ipv4_address: 172.28.0.10
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
 # ══════════════════════════════════════════════════════════════
 # VOLUMES & NETWORKS
 # ══════════════════════════════════════════════════════════════
@@ -145,3 +176,7 @@ volumes:
 networks:
   blood_donor_net:
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16

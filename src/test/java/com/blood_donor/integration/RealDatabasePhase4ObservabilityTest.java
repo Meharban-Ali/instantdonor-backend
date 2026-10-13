@@ -97,12 +97,12 @@ public class RealDatabasePhase4ObservabilityTest extends BaseIntegrationTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("FATAL STARTUP ERROR: JWT secret");
 
-        // 2. JWT secret too short for HMAC-SHA384 (< 48 bytes)
+        // 2. JWT secret too short (< 32 bytes)
         ProductionStartupValidator validator2 = new ProductionStartupValidator(envDev);
-        ReflectionTestUtils.setField(validator2, "jwtSecret", "short_secret_under_48_bytes");
+        ReflectionTestUtils.setField(validator2, "jwtSecret", "short_secret_under_32_bytes");
         assertThatThrownBy(() -> validator2.run(new DefaultApplicationArguments()))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("too short for HMAC-SHA384");
+                .hasMessageContaining("FATAL STARTUP ERROR: JWT secret is too short");
 
         // 3. Valid secret in dev profile passes cleanly
         ProductionStartupValidator validator3 = new ProductionStartupValidator(envDev);

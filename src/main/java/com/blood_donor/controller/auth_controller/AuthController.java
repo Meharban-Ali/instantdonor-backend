@@ -46,11 +46,7 @@ public class AuthController {
     private final JwtTokenProvider jwtTokenProvider;
 
     private String getClientIp() {
-        String xfHeader = this.httpServletRequest.getHeader("X-Forwarded-For");
-        if (xfHeader == null || xfHeader.isEmpty()) {
-            return this.httpServletRequest.getRemoteAddr();
-        }
-        return xfHeader.split(",")[0].trim();
+        return this.httpServletRequest.getRemoteAddr();
     }
 
     @PostMapping(value={"/register"})
@@ -64,8 +60,9 @@ public class AuthController {
     @PostMapping(value={"/login"})
     @Operation(summary="Login", description="Authenticate and receive JWT access + refresh tokens")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
-        AuthResponse response = this.authService.login(request);
-        this.auditLogService.log("USER_LOGIN", "Logged in successfully", request.getEmail(), this.getClientIp());
+        String clientIp = this.getClientIp();
+        AuthResponse response = this.authService.login(request, clientIp);
+        this.auditLogService.log("USER_LOGIN", "Logged in successfully", request.getEmail(), clientIp);
         return ResponseEntity.ok(ApiResponse.success("Login successful", response));
     }
 

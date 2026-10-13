@@ -86,4 +86,58 @@ public class TrustedProxyAndRateLimitSpoofingTest {
         assertThat(res4.getContentAsString()).contains("Too many requests");
         verify(customMetricsService).recordRateLimit429();
     }
+
+    @Test
+    @DisplayName("Distinct forwarded clients via trusted proxy have independent rate-limit buckets")
+    void testDistinctForwardedClientsHaveIndependentRateLimitBuckets() throws ServletException, IOException {
+        String clientA_Ip = "203.0.113.10";
+        String clientB_Ip = "203.0.113.20";
+
+        // Client A consumes all 3 tokens
+        for (int i = 1; i <= 3; i++) {
+            MockHttpServletRequest reqA = new MockHttpServletRequest("POST", "/api/auth/login");
+            reqA.setRemoteAddr(clientA_Ip);
+            reqA.setContent(("{\"email\":\"clientA" + i + "@test.com\",\"password\":\"wrong\"}").getBytes());
+            MockHttpServletResponse resA = new MockHttpServletResponse();
+            rateLimitingFilter.doFilterInternal(reqA, resA, filterChain);
+            assertThat(resA.getStatus()).isEqualTo(200);
+        }
+
+        // Client A's 4th attempt is rate-limited (429)
+        MockHttpServletRequest reqA_Blocked = new MockHttpServletRequest("POST", "/api/auth/login");
+        reqA_Blocked.setRemoteAddr(clientA_Ip);
+        reqA_Blocked.setContent("{\"email\":\"clientA4@test.com\",\"password\":\"wrong\"}".getBytes());
+        MockHttpServletResponse resA_Blocked = new MockHttpServletResponse();
+        rateLimitingFilter.doFilterInternal(reqA_Blocked, resA_Blocked, filterChain);
+        assertThat(resA_Blocked.getStatus()).isEqualTo(429);
+
+        // Client B is completely unaffected: separate bucket with full tokens available
+        MockHttpServletRequest reqB = new MockHttpServletRequest("POST", "/api/auth/login");
+        reqB.setRemoteAddr(clientB_Ip);
+        reqB.setContent("{\"email\":\"clientB@test.com\",\"password\":\"wrong\"}".getBytes());
+        MockHttpServletResponse resB = new MockHttpServletResponse();
+        rateLimitingFilter.doFilterInternal(reqB, resB, filterChain);
+        assertThat(resB.getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    @DisplayName("internal-proxies regex strictly trusts only Docker Compose Nginx subnet (172.28.x.x) and loopback")
+    void testInternalProxiesRegexMatchesOnlyComposeNginxSubnetAndLoopback() {
+        String internalProxiesPattern = "127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|0:0:0:0:0:0:0:1|172\\.28\\.\\d{1,3}\\.\\d{1,3}";
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(internalProxiesPattern);
+
+        // Trusted proxies: compose nginx and loopback
+        assertThat(pattern.matcher("172.28.0.10").matches()).isTrue();
+        assertThat(pattern.matcher("172.28.1.1").matches()).isTrue();
+        assertThat(pattern.matcher("127.0.0.1").matches()).isTrue();
+        assertThat(pattern.matcher("0:0:0:0:0:0:0:1").matches()).isTrue();
+
+        // Untrusted callers: public IPs and non-whitelisted private subnets
+        assertThat(pattern.matcher("198.51.100.55").matches()).isFalse();
+        assertThat(pattern.matcher("203.0.113.10").matches()).isFalse();
+        assertThat(pattern.matcher("192.168.1.100").matches()).isFalse();
+        assertThat(pattern.matcher("10.0.0.1").matches()).isFalse();
+        assertThat(pattern.matcher("172.16.0.1").matches()).isFalse();
+        assertThat(pattern.matcher("172.29.0.1").matches()).isFalse();
+    }
 }

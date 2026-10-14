@@ -46,7 +46,7 @@ implements IAiMatchingService {
                 if (context.getRetryCount() > 0) {
                     log.warn("AI match retry #{}: url={}", (Object)context.getRetryCount(), (Object)url);
                 }
-                HttpEntity entity = new HttpEntity((Object)request, (MultiValueMap)this.buildJsonHeaders());
+                HttpEntity<AiMatchRequest> entity = new HttpEntity<>(request, this.buildJsonHeaders());
                 ResponseEntity resp = this.aiServiceRestTemplate.exchange(url, HttpMethod.POST, entity, AiMatchResponse.class, new Object[0]);
                 return (AiMatchResponse)resp.getBody();
             });
@@ -79,7 +79,7 @@ implements IAiMatchingService {
                 if (context.getRetryCount() > 0) {
                     log.warn("AI prediction retry #{}: url={}", (Object)context.getRetryCount(), (Object)url);
                 }
-                HttpEntity entity = new HttpEntity((Object)request, (MultiValueMap)this.buildJsonHeaders());
+                HttpEntity<AiDemandRequest> entity = new HttpEntity<>(request, this.buildJsonHeaders());
                 ResponseEntity resp = this.aiServiceRestTemplate.exchange(url, HttpMethod.POST, entity, AiDemandResponse.class, new Object[0]);
                 return (AiDemandResponse)resp.getBody();
             });
@@ -122,6 +122,9 @@ implements IAiMatchingService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        if (this.aiProperties.getApiKey() != null && !this.aiProperties.getApiKey().isBlank()) {
+            headers.set("X-API-KEY", this.aiProperties.getApiKey());
+        }
         return headers;
     }
 }

@@ -63,6 +63,27 @@ public class DonorSearchRequest {
         this.radiusSearch = radiusSearch;
     }
 
+    public void setLatitude(Double latitude) {
+        if (this.radiusSearch == null) {
+            this.radiusSearch = new RadiusSearchRequest();
+        }
+        this.radiusSearch.setLatitude(latitude);
+    }
+
+    public void setLongitude(Double longitude) {
+        if (this.radiusSearch == null) {
+            this.radiusSearch = new RadiusSearchRequest();
+        }
+        this.radiusSearch.setLongitude(longitude);
+    }
+
+    public void setRadiusKm(Double radiusKm) {
+        if (this.radiusSearch == null) {
+            this.radiusSearch = new RadiusSearchRequest();
+        }
+        this.radiusSearch.setRadiusKm(radiusKm);
+    }
+
     public void setPagination(PaginationRequest pagination) {
         this.pagination = pagination;
     }

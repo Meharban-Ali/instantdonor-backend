@@ -1,12 +1,19 @@
 // scripts/smoke_test.js
 const http = require('http');
+const https = require('https');
 
-const PORT = parseInt(process.env.APP_PORT || '8090', 10);
+const PORT = parseInt(process.env.APP_PORT || '8443', 10);
 const HOST = process.env.APP_HOST || 'localhost';
+const isHttps = process.env.APP_SSL === 'true' || PORT === 8443;
+const client = isHttps ? https : http;
 
 async function request(options, body) {
   return new Promise((resolve, reject) => {
-    const req = http.request(options, (res) => {
+    const reqOpts = Object.assign({}, options);
+    if (isHttps) {
+      reqOpts.rejectUnauthorized = false;
+    }
+    const req = client.request(reqOpts, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {

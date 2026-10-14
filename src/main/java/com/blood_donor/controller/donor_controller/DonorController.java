@@ -64,7 +64,7 @@ public class DonorController {
         return ResponseEntity.status((HttpStatusCode)HttpStatus.CREATED).body(ApiResponse.success("Donor registered successfully", response));
     }
 
-    @GetMapping(value={"/me"})
+    @GetMapping(value={"/me", "/profile"})
     @PreAuthorize(value="hasRole('DONOR')")
     @SecurityRequirement(name="bearerAuth")
     @Operation(summary="Get my donor profile")
@@ -83,6 +83,16 @@ public class DonorController {
         DonorResponse response = this.profileService.updateProfile(userId, request);
         log.info("Profile updated: userId={}", (Object)userId);
         return ResponseEntity.ok(ApiResponse.success("Profile updated successfully", response));
+    }
+
+    @GetMapping(value={"/availability"})
+    @PreAuthorize(value="hasRole('DONOR')")
+    @SecurityRequirement(name="bearerAuth")
+    @Operation(summary="Check donation availability", description="Check current availability status of donor.")
+    public ResponseEntity<ApiResponse<Boolean>> getAvailability() {
+        Long userId = this.securityUtils.getCurrentUserId();
+        DonorResponse response = this.profileService.getMyProfile(userId);
+        return ResponseEntity.ok(ApiResponse.success("Availability status fetched", response.isAvailable()));
     }
 
     @PatchMapping(value={"/availability"})

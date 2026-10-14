@@ -28,7 +28,7 @@ export function setup() {
   for (let i = 1; i <= 20; i++) {
     const email = `bench_user_${i}_${Date.now()}@loadtest.local`;
     const password = 'Password@123!';
-    const phone = `95${String(10000000 + i)}`;
+    const phone = `95${Math.floor(10000000 + Math.random() * 89999999)}`;
 
     const res = http.post(`${BASE_URL}/api/auth/register`, JSON.stringify({
       name: `Bench User ${i}`,

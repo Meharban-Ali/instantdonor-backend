@@ -73,7 +73,7 @@ public class BloodRequestController {
         return ResponseEntity.ok(ApiResponse.success("Request fetched", response));
     }
 
-    @GetMapping(value={"/my"})
+    @GetMapping(value={"/my", "/my-requests"})
     @PreAuthorize(value="isAuthenticated()")
     @SecurityRequirement(name="bearerAuth")
     @Operation(summary="Get my blood requests history", description="Returns all requests created by current user. All statuses included.")

@@ -1,11 +1,11 @@
 {
-  "timestamp": 1791818755,
-  "rebuilt_host": "http://172.30.0.1:8090",
-  "orig_host": "http://172.30.0.1:8091",
+  "timestamp": 1791965942,
+  "rebuilt_host": "https://nginx:443",
+  "orig_host": "http://localhost:8091",
   "summary": {
-    "total": 21,
-    "matches": 14,
-    "intentional_fixes": 7,
+    "total": 38,
+    "matches": 27,
+    "intentional_fixes": 11,
     "regressions": 0
   },
   "cases": [
@@ -17,52 +17,12 @@
       "classification": "INTENTIONAL FIX",
       "explanation": "Rebuilt app isolates AI service in actuator health group so overall status is UP, whereas original jar reported DOWN when AI service was unavailable.",
       "rebuilt_response": {
-        "status": "UP",
-        "components": {
-          "ai-service": {
-            "status": "CIRCUIT_OPEN",
-            "details": {
-              "message": "AI service unavailable, database fallback active"
-            }
-          },
-          "db": {
-            "status": "UP",
-            "details": {
-              "database": "MySQL",
-              "validationQuery": "isValid()"
-            }
-          },
-          "diskSpace": {
-            "status": "UP",
-            "details": {
-              "total": 53686038528,
-              "free": 41974423552,
-              "threshold": 10485760,
-              "path": "D:\\Meharban-code\\Ai_Blood_Donor_Network\\Backend\\AiBloodDonorWebApplication_Backend\\.",
-              "exists": true
-            }
-          },
-          "livenessState": {
-            "status": "UP"
-          },
-          "ping": {
-            "status": "UP"
-          },
-          "readinessState": {
-            "status": "UP"
-          },
-          "redis": {
-            "status": "UP",
-            "details": {
-              "version": "<DYNAMIC>"
-            }
-          }
-        },
         "groups": [
           "ai",
           "liveness",
           "readiness"
-        ]
+        ],
+        "status": "UP"
       },
       "orig_response": {
         "status": "DOWN",
@@ -130,16 +90,16 @@
         "success": true,
         "message": "Registration successful",
         "data": {
-          "userId": "<DYNAMIC>",
           "accessToken": "<DYNAMIC>",
-          "refreshToken": "<DYNAMIC>",
-          "tokenType": "Bearer",
-          "name": "Donor Persona",
           "email": "<DYNAMIC>",
+          "expiresIn": 3600,
+          "name": "Donor Persona",
+          "refreshToken": "<DYNAMIC>",
           "roles": [
             "USER"
           ],
-          "expiresIn": 3600
+          "tokenType": "Bearer",
+          "userId": "<DYNAMIC>"
         },
         "timestamp": "<DYNAMIC>"
       },
@@ -172,16 +132,16 @@
         "success": true,
         "message": "Registration successful",
         "data": {
-          "userId": "<DYNAMIC>",
           "accessToken": "<DYNAMIC>",
-          "refreshToken": "<DYNAMIC>",
-          "tokenType": "Bearer",
-          "name": "Recipient Persona",
           "email": "<DYNAMIC>",
+          "expiresIn": 3600,
+          "name": "Recipient Persona",
+          "refreshToken": "<DYNAMIC>",
           "roles": [
             "USER"
           ],
-          "expiresIn": 3600
+          "tokenType": "Bearer",
+          "userId": "<DYNAMIC>"
         },
         "timestamp": "<DYNAMIC>"
       },
@@ -212,7 +172,8 @@
       "explanation": "Identical status code and response payload structure.",
       "rebuilt_response": {
         "success": false,
-        "error": "Validation Failed: {password=Password must be at least 8 characters, phone=Invalid mobile number, name=Name must be 3-100 characters, email=Invalid email format}",
+        "message": "Validation Failed: {password=Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character, phone=Invalid mobile number, name=Name must be 3-100 characters, email=Invalid email format}",
+        "error": "Validation Failed: {password=Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character, phone=Invalid mobile number, name=Name must be 3-100 characters, email=Invalid email format}",
         "timestamp": "<DYNAMIC>"
       },
       "orig_response": {
@@ -232,16 +193,16 @@
         "success": true,
         "message": "Login successful",
         "data": {
-          "userId": "<DYNAMIC>",
           "accessToken": "<DYNAMIC>",
-          "refreshToken": "<DYNAMIC>",
-          "tokenType": "Bearer",
-          "name": "Donor Persona",
           "email": "<DYNAMIC>",
+          "expiresIn": 3600,
+          "name": "Donor Persona",
+          "refreshToken": "<DYNAMIC>",
           "roles": [
             "USER"
           ],
-          "expiresIn": 3600
+          "tokenType": "Bearer",
+          "userId": "<DYNAMIC>"
         },
         "timestamp": "<DYNAMIC>"
       },
@@ -272,6 +233,7 @@
       "explanation": "Identical status code and response payload structure.",
       "rebuilt_response": {
         "success": false,
+        "message": "Invalid email or password",
         "error": "Invalid email or password",
         "timestamp": "<DYNAMIC>"
       },
@@ -292,15 +254,15 @@
         "success": true,
         "message": "Profile fetched",
         "data": {
-          "id": "<DYNAMIC>",
-          "name": "Donor Persona",
+          "createdAt": "<DYNAMIC>",
           "email": "<DYNAMIC>",
-          "phone": "9856784801",
+          "id": "<DYNAMIC>",
+          "isActive": true,
+          "name": "Donor Persona",
+          "phone": "<DYNAMIC_PHONE>",
           "roles": [
             "USER"
-          ],
-          "isActive": true,
-          "createdAt": "<DYNAMIC>"
+          ]
         },
         "timestamp": "<DYNAMIC>"
       },
@@ -311,7 +273,7 @@
           "id": "<DYNAMIC>",
           "name": "Donor Persona",
           "email": "<DYNAMIC>",
-          "phone": "9856784801",
+          "phone": "<DYNAMIC_PHONE>",
           "roles": [
             "USER"
           ],
@@ -329,7 +291,10 @@
       "classification": "MATCH",
       "explanation": "Identical status code and response payload structure.",
       "rebuilt_response": {
-        "error": "Unauthorized"
+        "success": false,
+        "message": "Unauthorized",
+        "error": "Unauthorized",
+        "timestamp": "<DYNAMIC>"
       },
       "orig_response": {
         "error": "Unauthorized"
@@ -343,7 +308,10 @@
       "classification": "INTENTIONAL FIX",
       "explanation": "Rebuilt app returns standard 403 Forbidden via AccessDeniedHandler, whereas original jar omitted AccessDeniedHandler returning 401.",
       "rebuilt_response": {
-        "error": "Forbidden"
+        "success": false,
+        "message": "Forbidden: insufficient permissions",
+        "error": "Forbidden: insufficient permissions",
+        "timestamp": "<DYNAMIC>"
       },
       "orig_response": {
         "error": "Unauthorized"
@@ -360,11 +328,11 @@
         "success": true,
         "message": "Donor registered successfully",
         "data": {
-          "donorId": 6,
+          "donorId": 17,
           "user": {
             "userId": "<DYNAMIC>",
             "name": "Donor Persona",
-            "phone": "9856784801"
+            "phone": "<DYNAMIC_PHONE>"
           },
           "blood": {
             "bloodGroup": "O+",
@@ -404,17 +372,17 @@
         "success": true,
         "message": "Login successful",
         "data": {
-          "userId": "<DYNAMIC>",
           "accessToken": "<DYNAMIC>",
-          "refreshToken": "<DYNAMIC>",
-          "tokenType": "Bearer",
-          "name": "Donor Persona",
           "email": "<DYNAMIC>",
+          "expiresIn": 3600,
+          "name": "Donor Persona",
+          "refreshToken": "<DYNAMIC>",
           "roles": [
             "USER",
             "DONOR"
           ],
-          "expiresIn": 3600
+          "tokenType": "Bearer",
+          "userId": "<DYNAMIC>"
         },
         "timestamp": "<DYNAMIC>"
       },
@@ -439,13 +407,154 @@
     {
       "step": "DONOR_SEARCH_PUBLIC",
       "description": "Public search donors by city & group (phone masking check)",
-      "rebuilt_status": 400,
+      "rebuilt_status": 200,
       "orig_status": 400,
-      "classification": "MATCH",
-      "explanation": "Identical status code and response payload structure.",
+      "classification": "INTENTIONAL FIX",
+      "explanation": "Rebuilt app masks donor phone numbers (e.g. 98765***** or [PROTECTED]) in public search to satisfy DPDP/PII privacy, whereas original jar leaked plain phone numbers.",
       "rebuilt_response": {
-        "success": false,
-        "error": "Validation Failed: {bloodGroup=Failed to convert property value of type 'java.lang.String' to required type 'com.blood_donor.common.enums.BloodGroup' for property 'bloodGroup'; Failed to convert from type [java.lang.String] to type [@jakarta.validation.constraints.NotNull$List com.blood_donor.common.enums.BloodGroup] for value [O+]}",
+        "success": true,
+        "message": "Found 4 donors",
+        "data": {
+          "content": [
+            {
+              "donorId": 14,
+              "user": {
+                "userId": "<DYNAMIC>",
+                "name": "Donor Persona",
+                "phone": "<MASKED_PHONE>"
+              },
+              "blood": {
+                "bloodGroup": "O+",
+                "bloodGroupDisplay": "O+"
+              },
+              "location": {
+                "city": "Mumbai",
+                "state": "Maharashtra",
+                "latitude": 18.925,
+                "longitude": 72.825
+              },
+              "donationStats": {
+                "totalDonations": 0,
+                "reliabilityScore": 52.0,
+                "responseRate": 100.0,
+                "lastDonationDate": "<DYNAMIC>",
+                "nextEligibleDate": null,
+                "eligible": true
+              },
+              "createdAt": "<DYNAMIC>",
+              "available": true
+            },
+            {
+              "donorId": 15,
+              "user": {
+                "userId": "<DYNAMIC>",
+                "name": "Donor Persona",
+                "phone": "<MASKED_PHONE>"
+              },
+              "blood": {
+                "bloodGroup": "O+",
+                "bloodGroupDisplay": "O+"
+              },
+              "location": {
+                "city": "Mumbai",
+                "state": "Maharashtra",
+                "latitude": 18.925,
+                "longitude": 72.825
+              },
+              "donationStats": {
+                "totalDonations": 0,
+                "reliabilityScore": 52.0,
+                "responseRate": 100.0,
+                "lastDonationDate": "<DYNAMIC>",
+                "nextEligibleDate": null,
+                "eligible": true
+              },
+              "createdAt": "<DYNAMIC>",
+              "available": true
+            },
+            {
+              "donorId": 16,
+              "user": {
+                "userId": "<DYNAMIC>",
+                "name": "Donor Persona",
+                "phone": "<MASKED_PHONE>"
+              },
+              "blood": {
+                "bloodGroup": "O+",
+                "bloodGroupDisplay": "O+"
+              },
+              "location": {
+                "city": "Mumbai",
+                "state": "Maharashtra",
+                "latitude": 18.925,
+                "longitude": 72.825
+              },
+              "donationStats": {
+                "totalDonations": 0,
+                "reliabilityScore": 52.0,
+                "responseRate": 100.0,
+                "lastDonationDate": "<DYNAMIC>",
+                "nextEligibleDate": null,
+                "eligible": true
+              },
+              "createdAt": "<DYNAMIC>",
+              "available": true
+            },
+            {
+              "donorId": 17,
+              "user": {
+                "userId": "<DYNAMIC>",
+                "name": "Donor Persona",
+                "phone": "<MASKED_PHONE>"
+              },
+              "blood": {
+                "bloodGroup": "O+",
+                "bloodGroupDisplay": "O+"
+              },
+              "location": {
+                "city": "Mumbai",
+                "state": "Maharashtra",
+                "latitude": 18.925,
+                "longitude": 72.825
+              },
+              "donationStats": {
+                "totalDonations": 0,
+                "reliabilityScore": 50.0,
+                "responseRate": 0.0,
+                "lastDonationDate": "<DYNAMIC>",
+                "nextEligibleDate": null,
+                "eligible": true
+              },
+              "createdAt": "<DYNAMIC>",
+              "available": true
+            }
+          ],
+          "empty": false,
+          "first": true,
+          "last": true,
+          "number": 0,
+          "numberOfElements": 4,
+          "pageable": {
+            "offset": 0,
+            "pageNumber": 0,
+            "pageSize": 10,
+            "paged": true,
+            "sort": {
+              "empty": false,
+              "sorted": true,
+              "unsorted": false
+            },
+            "unpaged": false
+          },
+          "size": 10,
+          "sort": {
+            "empty": false,
+            "sorted": true,
+            "unsorted": false
+          },
+          "totalElements": 4,
+          "totalPages": 1
+        },
         "timestamp": "<DYNAMIC>"
       },
       "orig_response": {
@@ -469,7 +578,7 @@
           "status": "PENDING",
           "patient": {
             "patientName": "Patient Persona",
-            "contactPhone": "9781050636",
+            "contactPhone": "<DYNAMIC>",
             "createdById": "<DYNAMIC>",
             "createdByName": "Recipient Persona"
           },
@@ -510,7 +619,7 @@
           "status": "PENDING",
           "patient": {
             "patientName": "Patient Persona",
-            "contactPhone": "9781050636",
+            "contactPhone": "<DYNAMIC>",
             "createdById": "<DYNAMIC>",
             "createdByName": "Recipient Persona"
           },
@@ -550,9 +659,10 @@
       "rebuilt_status": 403,
       "orig_status": 403,
       "classification": "MATCH",
-      "explanation": "Identical status code and response payload structure.",
+      "explanation": "Both servers rejected self-accept.",
       "rebuilt_response": {
         "success": false,
+        "message": "Access Denied: insufficient permission",
         "error": "Access Denied: insufficient permission",
         "timestamp": "<DYNAMIC>"
       },
@@ -577,7 +687,7 @@
           "status": "MATCHING",
           "patient": {
             "patientName": "Patient Persona",
-            "contactPhone": "9781050636",
+            "contactPhone": "<DYNAMIC>",
             "createdById": "<DYNAMIC>",
             "createdByName": "Recipient Persona"
           },
@@ -622,9 +732,10 @@
       "rebuilt_status": 403,
       "orig_status": 403,
       "classification": "MATCH",
-      "explanation": "Identical status code and response payload structure.",
+      "explanation": "Both servers correctly returned HTTP 403 denial.",
       "rebuilt_response": {
         "success": false,
+        "message": "You can only cancel your own requests",
         "error": "You can only cancel your own requests",
         "timestamp": "<DYNAMIC>"
       },
@@ -649,7 +760,7 @@
           "status": "CANCELLED",
           "patient": {
             "patientName": "Patient Persona",
-            "contactPhone": "9781050636",
+            "contactPhone": "<DYNAMIC>",
             "createdById": "<DYNAMIC>",
             "createdByName": "Recipient Persona"
           },
@@ -690,7 +801,7 @@
           "status": "CANCELLED",
           "patient": {
             "patientName": "Patient Persona",
-            "contactPhone": "9781050636",
+            "contactPhone": "<DYNAMIC>",
             "createdById": "<DYNAMIC>",
             "createdByName": "Recipient Persona"
           },
@@ -725,6 +836,1320 @@
       }
     },
     {
+      "step": "DONOR_GET_PROFILE",
+      "description": "Fetch donor medical profile for authenticated donor",
+      "rebuilt_status": 200,
+      "orig_status": 0,
+      "classification": "MATCH",
+      "explanation": "Rebuilt endpoint returned expected HTTP 200 status.",
+      "rebuilt_response": {
+        "success": true,
+        "message": "Profile fetched successfully",
+        "data": {
+          "donorId": 17,
+          "user": {
+            "userId": "<DYNAMIC>",
+            "name": "Donor Persona",
+            "phone": "<DYNAMIC_PHONE>"
+          },
+          "blood": {
+            "bloodGroup": "O+",
+            "bloodGroupDisplay": "O+"
+          },
+          "location": {
+            "city": "Mumbai",
+            "state": "Maharashtra",
+            "latitude": 18.925,
+            "longitude": 72.825
+          },
+          "donationStats": {
+            "totalDonations": 0,
+            "reliabilityScore": 52.0,
+            "responseRate": 100.0,
+            "lastDonationDate": "<DYNAMIC>",
+            "nextEligibleDate": null,
+            "eligible": true
+          },
+          "createdAt": "<DYNAMIC>",
+          "available": true
+        },
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
+      "step": "DONOR_CHECK_ELIGIBILITY",
+      "description": "Check donor donation eligibility status",
+      "rebuilt_status": 200,
+      "orig_status": 0,
+      "classification": "MATCH",
+      "explanation": "Rebuilt endpoint returned expected HTTP 200 status.",
+      "rebuilt_response": {
+        "success": true,
+        "message": "Eligibility checked",
+        "data": {
+          "eligible": true,
+          "daysRemaining": 0,
+          "message": "You are eligible to donate blood!"
+        },
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
+      "step": "DONOR_CHECK_AVAILABILITY",
+      "description": "Check donor availability toggle status",
+      "rebuilt_status": 200,
+      "orig_status": 0,
+      "classification": "MATCH",
+      "explanation": "Rebuilt endpoint returned expected HTTP 200 status.",
+      "rebuilt_response": {
+        "success": true,
+        "message": "Availability status fetched",
+        "data": true,
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
+      "step": "DONOR_SEARCH_NEARBY",
+      "description": "Geo-radius search for nearby donors",
+      "rebuilt_status": 200,
+      "orig_status": 0,
+      "classification": "MATCH",
+      "explanation": "Nearby donor search returned expected results.",
+      "rebuilt_response": {
+        "success": true,
+        "message": "Found 4 nearby donors",
+        "data": [
+          {
+            "donorId": 14,
+            "user": {
+              "userId": "<DYNAMIC>",
+              "name": "Donor Persona",
+              "phone": "<MASKED_PHONE>"
+            },
+            "blood": {
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+"
+            },
+            "location": {
+              "city": "Mumbai",
+              "state": "Maharashtra",
+              "latitude": 18.925,
+              "longitude": 72.825
+            },
+            "donationStats": {
+              "totalDonations": 0,
+              "reliabilityScore": 52.0,
+              "responseRate": 100.0,
+              "lastDonationDate": "<DYNAMIC>",
+              "nextEligibleDate": null,
+              "eligible": true
+            },
+            "distanceKm": "<DYNAMIC>",
+            "createdAt": "<DYNAMIC>",
+            "available": true
+          },
+          {
+            "donorId": 15,
+            "user": {
+              "userId": "<DYNAMIC>",
+              "name": "Donor Persona",
+              "phone": "<MASKED_PHONE>"
+            },
+            "blood": {
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+"
+            },
+            "location": {
+              "city": "Mumbai",
+              "state": "Maharashtra",
+              "latitude": 18.925,
+              "longitude": 72.825
+            },
+            "donationStats": {
+              "totalDonations": 0,
+              "reliabilityScore": 52.0,
+              "responseRate": 100.0,
+              "lastDonationDate": "<DYNAMIC>",
+              "nextEligibleDate": null,
+              "eligible": true
+            },
+            "distanceKm": "<DYNAMIC>",
+            "createdAt": "<DYNAMIC>",
+            "available": true
+          },
+          {
+            "donorId": 16,
+            "user": {
+              "userId": "<DYNAMIC>",
+              "name": "Donor Persona",
+              "phone": "<MASKED_PHONE>"
+            },
+            "blood": {
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+"
+            },
+            "location": {
+              "city": "Mumbai",
+              "state": "Maharashtra",
+              "latitude": 18.925,
+              "longitude": 72.825
+            },
+            "donationStats": {
+              "totalDonations": 0,
+              "reliabilityScore": 52.0,
+              "responseRate": 100.0,
+              "lastDonationDate": "<DYNAMIC>",
+              "nextEligibleDate": null,
+              "eligible": true
+            },
+            "distanceKm": "<DYNAMIC>",
+            "createdAt": "<DYNAMIC>",
+            "available": true
+          },
+          {
+            "donorId": 17,
+            "user": {
+              "userId": "<DYNAMIC>",
+              "name": "Donor Persona",
+              "phone": "<MASKED_PHONE>"
+            },
+            "blood": {
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+"
+            },
+            "location": {
+              "city": "Mumbai",
+              "state": "Maharashtra",
+              "latitude": 18.925,
+              "longitude": 72.825
+            },
+            "donationStats": {
+              "totalDonations": 0,
+              "reliabilityScore": 52.0,
+              "responseRate": 100.0,
+              "lastDonationDate": "<DYNAMIC>",
+              "nextEligibleDate": null,
+              "eligible": true
+            },
+            "distanceKm": "<DYNAMIC>",
+            "createdAt": "<DYNAMIC>",
+            "available": true
+          }
+        ],
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
+      "step": "REQUEST_GET_ACTIVE",
+      "description": "Public active blood requests listing (paginated)",
+      "rebuilt_status": 200,
+      "orig_status": 0,
+      "classification": "MATCH",
+      "explanation": "Rebuilt endpoint returned expected HTTP 200 status.",
+      "rebuilt_response": {
+        "success": true,
+        "message": "Active requests fetched \u2014 total: 1",
+        "data": {
+          "content": [
+            {
+              "id": "<DYNAMIC>",
+              "status": "MATCHING",
+              "patient": {
+                "patientName": "Patient Sharma",
+                "contactPhone": "<DYNAMIC>",
+                "createdById": "<DYNAMIC>",
+                "createdByName": "Priya Patel (Requester)"
+              },
+              "hospital": {
+                "hospitalName": "AIIMS New Delhi",
+                "city": "Delhi",
+                "latitude": 28.5672,
+                "longitude": 77.21
+              },
+              "blood": {
+                "bloodGroup": "O+",
+                "bloodGroupDisplay": "O+",
+                "urgency": "CRITICAL",
+                "unitsRequired": 2
+              },
+              "tracking": {
+                "notifiedDonors": 0,
+                "acceptedDonors": 1,
+                "fulfillmentPercentage": 50.0,
+                "fulfilled": false
+              },
+              "time": {
+                "createdAt": "<DYNAMIC>",
+                "expiredAt": "<DYNAMIC>",
+                "minutesRemaining": "<DYNAMIC>"
+              },
+              "active": true,
+              "expired": false
+            }
+          ],
+          "empty": false,
+          "first": true,
+          "last": true,
+          "number": 0,
+          "numberOfElements": 1,
+          "pageable": {
+            "offset": 0,
+            "pageNumber": 0,
+            "pageSize": 10,
+            "paged": true,
+            "sort": {
+              "empty": false,
+              "sorted": true,
+              "unsorted": false
+            },
+            "unpaged": false
+          },
+          "size": 10,
+          "sort": {
+            "empty": false,
+            "sorted": true,
+            "unsorted": false
+          },
+          "totalElements": 1,
+          "totalPages": 1
+        },
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
+      "step": "REQUEST_GET_BY_ID",
+      "description": "Fetch specific blood request by ID",
+      "rebuilt_status": 200,
+      "orig_status": 0,
+      "classification": "MATCH",
+      "explanation": "Rebuilt endpoint returned expected HTTP 200 status.",
+      "rebuilt_response": {
+        "success": true,
+        "message": "Request fetched",
+        "data": {
+          "id": "<DYNAMIC>",
+          "status": "CANCELLED",
+          "patient": {
+            "patientName": "Patient Persona",
+            "contactPhone": "<DYNAMIC>",
+            "createdById": "<DYNAMIC>",
+            "createdByName": "Recipient Persona"
+          },
+          "hospital": {
+            "hospitalName": "Lilavati Hospital Bandra",
+            "city": "Mumbai",
+            "latitude": 18.925,
+            "longitude": 72.825
+          },
+          "blood": {
+            "bloodGroup": "O+",
+            "bloodGroupDisplay": "O+",
+            "urgency": "URGENT",
+            "unitsRequired": 2,
+            "additionalInfo": "Emergency blood request for comparison"
+          },
+          "tracking": {
+            "notifiedDonors": 0,
+            "acceptedDonors": 1,
+            "fulfillmentPercentage": 50.0,
+            "fulfilled": false
+          },
+          "time": {
+            "createdAt": "<DYNAMIC>",
+            "expiredAt": "<DYNAMIC>",
+            "minutesRemaining": "<DYNAMIC>"
+          },
+          "active": false,
+          "expired": false
+        },
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
+      "step": "REQUEST_GET_MY_REQUESTS",
+      "description": "Fetch requester's own blood request history",
+      "rebuilt_status": 200,
+      "orig_status": 0,
+      "classification": "MATCH",
+      "explanation": "Rebuilt endpoint returned expected HTTP 200 status.",
+      "rebuilt_response": {
+        "success": true,
+        "message": "Your requests fetched",
+        "data": {
+          "content": [
+            {
+              "id": "<DYNAMIC>",
+              "status": "CANCELLED",
+              "patient": {
+                "patientName": "Patient Persona",
+                "contactPhone": "<DYNAMIC>",
+                "createdById": "<DYNAMIC>",
+                "createdByName": "Recipient Persona"
+              },
+              "hospital": {
+                "hospitalName": "Lilavati Hospital Bandra",
+                "city": "Mumbai",
+                "latitude": 18.925,
+                "longitude": 72.825
+              },
+              "blood": {
+                "bloodGroup": "O+",
+                "bloodGroupDisplay": "O+",
+                "urgency": "URGENT",
+                "unitsRequired": 2,
+                "additionalInfo": "Emergency blood request for comparison"
+              },
+              "tracking": {
+                "notifiedDonors": 0,
+                "acceptedDonors": 1,
+                "fulfillmentPercentage": 50.0,
+                "fulfilled": false
+              },
+              "time": {
+                "createdAt": "<DYNAMIC>",
+                "expiredAt": "<DYNAMIC>",
+                "minutesRemaining": "<DYNAMIC>"
+              },
+              "active": false,
+              "expired": false
+            }
+          ],
+          "empty": false,
+          "first": true,
+          "last": true,
+          "number": 0,
+          "numberOfElements": 1,
+          "pageable": {
+            "offset": 0,
+            "pageNumber": 0,
+            "pageSize": 10,
+            "paged": true,
+            "sort": {
+              "empty": false,
+              "sorted": true,
+              "unsorted": false
+            },
+            "unpaged": false
+          },
+          "size": 10,
+          "sort": {
+            "empty": false,
+            "sorted": true,
+            "unsorted": false
+          },
+          "totalElements": 1,
+          "totalPages": 1
+        },
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
+      "step": "STATS_PUBLIC",
+      "description": "Public platform statistics and donor counts",
+      "rebuilt_status": 200,
+      "orig_status": 0,
+      "classification": "MATCH",
+      "explanation": "Rebuilt endpoint returned expected HTTP 200 status.",
+      "rebuilt_response": {
+        "success": true,
+        "message": "Stats fetched",
+        "data": {
+          "totalDonors": 17,
+          "availableDonors": 17,
+          "totalDonations": 0,
+          "activeRequests": 1,
+          "fulfilledRequests": 0,
+          "fulfillmentRate": 0.0
+        },
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
+      "step": "AUTH_FORGOT_PASSWORD",
+      "description": "Initiate forgot password reset link generation",
+      "rebuilt_status": 200,
+      "orig_status": 0,
+      "classification": "MATCH",
+      "explanation": "Rebuilt endpoint returned expected HTTP 200 status.",
+      "rebuilt_response": {
+        "success": true,
+        "message": "Password reset email sent if account exists",
+        "data": "EMAIL_SENT",
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
+      "step": "ADMIN_LOGIN",
+      "description": "Authenticate with system administrator credentials",
+      "rebuilt_status": 200,
+      "orig_status": 0,
+      "classification": "MATCH",
+      "explanation": "Rebuilt endpoint returned expected HTTP 200 status.",
+      "rebuilt_response": {
+        "success": true,
+        "message": "Login successful",
+        "data": {
+          "accessToken": "<DYNAMIC>",
+          "email": "<DYNAMIC>",
+          "expiresIn": 3600,
+          "name": "Super Admin",
+          "refreshToken": "<DYNAMIC>",
+          "roles": [
+            "USER",
+            "ADMIN"
+          ],
+          "tokenType": "Bearer",
+          "userId": "<DYNAMIC>"
+        },
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
+      "step": "ADMIN_DASHBOARD_AUTHORIZED",
+      "description": "Fetch comprehensive admin dashboard with ADMIN role",
+      "rebuilt_status": 200,
+      "orig_status": 0,
+      "classification": "MATCH",
+      "explanation": "Rebuilt endpoint returned expected HTTP 200 status.",
+      "rebuilt_response": {
+        "success": true,
+        "message": "Dashboard data fetched",
+        "data": {
+          "totalUsers": 148,
+          "activeUsers": 145,
+          "totalDonors": 17,
+          "activeDonors": 17,
+          "totalHospitals": 0,
+          "newUsersThisMonth": 148,
+          "totalRequests": 62,
+          "activeRequests": 1,
+          "fulfilledRequests": 0,
+          "expiredRequests": 57,
+          "cancelledRequests": 4,
+          "criticalRequests": 1,
+          "requestsToday": 5,
+          "totalDonations": 0,
+          "donationsThisMonth": 0,
+          "donationsThisYear": 0,
+          "donationsToday": 0,
+          "bloodGroupStats": [
+            {
+              "bloodGroup": "A+",
+              "bloodGroupDisplay": "A+",
+              "donorCount": 0,
+              "availableCount": 0,
+              "pendingRequests": 0,
+              "supplyDemandRatio": 0.0,
+              "inShortage": true
+            },
+            {
+              "bloodGroup": "A-",
+              "bloodGroupDisplay": "A-",
+              "donorCount": 0,
+              "availableCount": 0,
+              "pendingRequests": 0,
+              "supplyDemandRatio": 0.0,
+              "inShortage": true
+            },
+            {
+              "bloodGroup": "B+",
+              "bloodGroupDisplay": "B+",
+              "donorCount": 0,
+              "availableCount": 0,
+              "pendingRequests": 0,
+              "supplyDemandRatio": 0.0,
+              "inShortage": true
+            },
+            {
+              "bloodGroup": "B-",
+              "bloodGroupDisplay": "B-",
+              "donorCount": 0,
+              "availableCount": 0,
+              "pendingRequests": 0,
+              "supplyDemandRatio": 0.0,
+              "inShortage": true
+            },
+            {
+              "bloodGroup": "AB+",
+              "bloodGroupDisplay": "AB+",
+              "donorCount": 0,
+              "availableCount": 0,
+              "pendingRequests": 0,
+              "supplyDemandRatio": 0.0,
+              "inShortage": true
+            },
+            {
+              "bloodGroup": "AB-",
+              "bloodGroupDisplay": "AB-",
+              "donorCount": 0,
+              "availableCount": 0,
+              "pendingRequests": 0,
+              "supplyDemandRatio": 0.0,
+              "inShortage": true
+            },
+            {
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "donorCount": 17,
+              "availableCount": 17,
+              "pendingRequests": 1,
+              "supplyDemandRatio": 17.0,
+              "inShortage": false
+            },
+            {
+              "bloodGroup": "O-",
+              "bloodGroupDisplay": "O-",
+              "donorCount": 0,
+              "availableCount": 0,
+              "pendingRequests": 0,
+              "supplyDemandRatio": 0.0,
+              "inShortage": true
+            }
+          ],
+          "topCitiesByDemand": [
+            {
+              "city": "Delhi",
+              "state": null,
+              "activeRequests": 1,
+              "fulfilledRequests": 0,
+              "availableDonors": 13,
+              "fulfillmentRate": null,
+              "criticalRequests": 1,
+              "demandLevel": "LOW"
+            }
+          ],
+          "recentRequests": [
+            {
+              "requestId": "<DYNAMIC>",
+              "patientName": "Patient Persona",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "urgency": "URGENT",
+              "city": "Mumbai",
+              "status": "CANCELLED",
+              "createdAt": "<DYNAMIC>",
+              "minutesAgo": 0,
+              "donorsNotified": 0,
+              "hasResponse": false,
+              "urgencyColor": "orange"
+            },
+            {
+              "requestId": "<DYNAMIC>",
+              "patientName": "Patient Persona",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "urgency": "URGENT",
+              "city": "Mumbai",
+              "status": "CANCELLED",
+              "createdAt": "<DYNAMIC>",
+              "minutesAgo": 108,
+              "donorsNotified": 0,
+              "hasResponse": false,
+              "urgencyColor": "orange"
+            },
+            {
+              "requestId": "<DYNAMIC>",
+              "patientName": "Patient Persona",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "urgency": "URGENT",
+              "city": "Mumbai",
+              "status": "CANCELLED",
+              "createdAt": "<DYNAMIC>",
+              "minutesAgo": 127,
+              "donorsNotified": 0,
+              "hasResponse": false,
+              "urgencyColor": "orange"
+            },
+            {
+              "requestId": "<DYNAMIC>",
+              "patientName": "Patient Persona",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "urgency": "URGENT",
+              "city": "Mumbai",
+              "status": "CANCELLED",
+              "createdAt": "<DYNAMIC>",
+              "minutesAgo": 129,
+              "donorsNotified": 0,
+              "hasResponse": false,
+              "urgencyColor": "orange"
+            },
+            {
+              "requestId": "<DYNAMIC>",
+              "patientName": "Patient Sharma",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "urgency": "CRITICAL",
+              "city": "Delhi",
+              "status": "MATCHING",
+              "createdAt": "<DYNAMIC>",
+              "minutesAgo": 139,
+              "donorsNotified": 0,
+              "hasResponse": false,
+              "urgencyColor": "red"
+            },
+            {
+              "requestId": "<DYNAMIC>",
+              "patientName": "Patient VU-49",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "urgency": "URGENT",
+              "city": "Delhi",
+              "status": "EXPIRED",
+              "createdAt": "<DYNAMIC>",
+              "minutesAgo": 1575,
+              "donorsNotified": 0,
+              "hasResponse": false,
+              "urgencyColor": "orange"
+            },
+            {
+              "requestId": "<DYNAMIC>",
+              "patientName": "Patient VU-43",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "urgency": "URGENT",
+              "city": "Delhi",
+              "status": "EXPIRED",
+              "createdAt": "<DYNAMIC>",
+              "minutesAgo": 1575,
+              "donorsNotified": 0,
+              "hasResponse": false,
+              "urgencyColor": "orange"
+            },
+            {
+              "requestId": "<DYNAMIC>",
+              "patientName": "Patient VU-50",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "urgency": "URGENT",
+              "city": "Delhi",
+              "status": "EXPIRED",
+              "createdAt": "<DYNAMIC>",
+              "minutesAgo": 1575,
+              "donorsNotified": 0,
+              "hasResponse": false,
+              "urgencyColor": "orange"
+            },
+            {
+              "requestId": "<DYNAMIC>",
+              "patientName": "Patient VU-40",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "urgency": "URGENT",
+              "city": "Delhi",
+              "status": "EXPIRED",
+              "createdAt": "<DYNAMIC>",
+              "minutesAgo": 1575,
+              "donorsNotified": 0,
+              "hasResponse": false,
+              "urgencyColor": "orange"
+            },
+            {
+              "requestId": "<DYNAMIC>",
+              "patientName": "Patient VU-46",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "urgency": "URGENT",
+              "city": "Delhi",
+              "status": "EXPIRED",
+              "createdAt": "<DYNAMIC>",
+              "minutesAgo": 1575,
+              "donorsNotified": 0,
+              "hasResponse": false,
+              "urgencyColor": "orange"
+            }
+          ],
+          "platformHealth": {
+            "fulfillmentRate": 0.0,
+            "avgResponseTimeHours": null,
+            "aiServiceOnline": false,
+            "avgAiMatchScore": null,
+            "aiMatchesThisWeek": 0,
+            "emailDeliveryRate": 95.0,
+            "smsDeliveryRate": 90.0,
+            "dbHealthy": true,
+            "redisHealthy": true,
+            "fullyOperational": false,
+            "healthScore": 60
+          },
+          "generatedAt": "2026-10-14T08:19:09.012481896",
+          "dataSource": "LIVE",
+          "avgResponseTime": null,
+          "fulfillmentRate": 0.0
+        },
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
+      "step": "ADMIN_GET_USERS",
+      "description": "Admin paginated user list with role filters",
+      "rebuilt_status": 200,
+      "orig_status": 0,
+      "classification": "MATCH",
+      "explanation": "Rebuilt endpoint returned expected HTTP 200 status.",
+      "rebuilt_response": {
+        "success": true,
+        "message": "Users fetched: 148",
+        "data": {
+          "content": [
+            {
+              "id": "<DYNAMIC>",
+              "name": "Recipient Persona",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "97****9062",
+              "roles": [
+                "USER"
+              ],
+              "isActive": true,
+              "createdAt": "<DYNAMIC>",
+              "lastUpdatedAt": "2026-10-14T08:19:05.471076",
+              "donor": false,
+              "primaryRole": "USER",
+              "reliabilityLevel": "UNKNOWN"
+            },
+            {
+              "id": "<DYNAMIC>",
+              "name": "Donor Persona",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "98****9890",
+              "roles": [
+                "USER",
+                "DONOR"
+              ],
+              "isActive": true,
+              "createdAt": "<DYNAMIC>",
+              "lastUpdatedAt": "2026-10-14T08:19:05.014112",
+              "bloodGroup": "O+",
+              "city": "Mumbai",
+              "isDonorAvailable": true,
+              "totalDonations": 0,
+              "reliabilityScore": 52.0,
+              "donor": true,
+              "primaryRole": "DONOR",
+              "reliabilityLevel": "MEDIUM"
+            },
+            {
+              "id": "<DYNAMIC>",
+              "name": "Deleted User 146",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "+0********0146",
+              "roles": [
+                "USER"
+              ],
+              "isActive": false,
+              "createdAt": "<DYNAMIC>",
+              "lastUpdatedAt": "2026-10-14T06:31:00.24545",
+              "donor": false,
+              "primaryRole": "USER",
+              "reliabilityLevel": "UNKNOWN"
+            },
+            {
+              "id": "<DYNAMIC>",
+              "name": "Donor Persona",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "98****5340",
+              "roles": [
+                "USER",
+                "DONOR"
+              ],
+              "isActive": true,
+              "createdAt": "<DYNAMIC>",
+              "lastUpdatedAt": "2026-10-14T06:30:53.849902",
+              "bloodGroup": "O+",
+              "city": "Mumbai",
+              "isDonorAvailable": true,
+              "totalDonations": 0,
+              "reliabilityScore": 52.0,
+              "donor": true,
+              "primaryRole": "DONOR",
+              "reliabilityLevel": "MEDIUM"
+            },
+            {
+              "id": "<DYNAMIC>",
+              "name": "Deleted User 144",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "+0********0144",
+              "roles": [
+                "USER"
+              ],
+              "isActive": false,
+              "createdAt": "<DYNAMIC>",
+              "lastUpdatedAt": "2026-10-14T06:11:54.732513",
+              "donor": false,
+              "primaryRole": "USER",
+              "reliabilityLevel": "UNKNOWN"
+            },
+            {
+              "id": "<DYNAMIC>",
+              "name": "Donor Persona",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "98****1717",
+              "roles": [
+                "USER",
+                "DONOR"
+              ],
+              "isActive": true,
+              "createdAt": "<DYNAMIC>",
+              "lastUpdatedAt": "2026-10-14T06:11:50.759856",
+              "bloodGroup": "O+",
+              "city": "Mumbai",
+              "isDonorAvailable": true,
+              "totalDonations": 0,
+              "reliabilityScore": 52.0,
+              "donor": true,
+              "primaryRole": "DONOR",
+              "reliabilityLevel": "MEDIUM"
+            },
+            {
+              "id": "<DYNAMIC>",
+              "name": "Deleted User 142",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "+0********0142",
+              "roles": [
+                "USER"
+              ],
+              "isActive": false,
+              "createdAt": "<DYNAMIC>",
+              "lastUpdatedAt": "2026-10-14T06:09:27.858839",
+              "donor": false,
+              "primaryRole": "USER",
+              "reliabilityLevel": "UNKNOWN"
+            },
+            {
+              "id": "<DYNAMIC>",
+              "name": "Donor Persona",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "98****6829",
+              "roles": [
+                "USER",
+                "DONOR"
+              ],
+              "isActive": true,
+              "createdAt": "<DYNAMIC>",
+              "lastUpdatedAt": "2026-10-14T06:09:22.0996",
+              "bloodGroup": "O+",
+              "city": "Mumbai",
+              "isDonorAvailable": true,
+              "totalDonations": 0,
+              "reliabilityScore": 52.0,
+              "donor": true,
+              "primaryRole": "DONOR",
+              "reliabilityLevel": "MEDIUM"
+            },
+            {
+              "id": "<DYNAMIC>",
+              "name": "Bench User 20",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "95****3792",
+              "roles": [
+                "USER"
+              ],
+              "isActive": true,
+              "createdAt": "<DYNAMIC>",
+              "lastUpdatedAt": "2026-10-14T06:00:52.189036",
+              "donor": false,
+              "primaryRole": "USER",
+              "reliabilityLevel": "UNKNOWN"
+            },
+            {
+              "id": "<DYNAMIC>",
+              "name": "Bench User 19",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "95****4842",
+              "roles": [
+                "USER"
+              ],
+              "isActive": true,
+              "createdAt": "<DYNAMIC>",
+              "lastUpdatedAt": "2026-10-14T06:00:51.837669",
+              "donor": false,
+              "primaryRole": "USER",
+              "reliabilityLevel": "UNKNOWN"
+            }
+          ],
+          "empty": false,
+          "first": true,
+          "last": false,
+          "number": 0,
+          "numberOfElements": 10,
+          "pageable": {
+            "offset": 0,
+            "pageNumber": 0,
+            "pageSize": 10,
+            "paged": true,
+            "sort": {
+              "empty": false,
+              "sorted": true,
+              "unsorted": false
+            },
+            "unpaged": false
+          },
+          "size": 10,
+          "sort": {
+            "empty": false,
+            "sorted": true,
+            "unsorted": false
+          },
+          "totalElements": 148,
+          "totalPages": 15
+        },
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
+      "step": "ADMIN_GET_DONORS",
+      "description": "Admin paginated donor registry with reliability scores",
+      "rebuilt_status": 200,
+      "orig_status": 0,
+      "classification": "MATCH",
+      "explanation": "Rebuilt endpoint returned expected HTTP 200 status.",
+      "rebuilt_response": {
+        "success": true,
+        "message": "Donors fetched: 17",
+        "data": {
+          "content": [
+            {
+              "donorId": 17,
+              "userId": "<DYNAMIC>",
+              "name": "Donor Persona",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "98****9890",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "city": "Mumbai",
+              "isAvailable": true,
+              "totalDonations": 0,
+              "reliabilityScore": 52.0,
+              "responseRate": 100.0,
+              "hasLocation": true,
+              "registeredAt": "2026-10-14T08:19:06.533994",
+              "lastUpdatedAt": "2026-10-14T08:19:07.36131",
+              "daysUntilEligible": 0,
+              "isEligible": true,
+              "reliabilityLevel": "MEDIUM",
+              "responseLevel": "GOOD",
+              "statusSummary": "Available + Eligible"
+            },
+            {
+              "donorId": 16,
+              "userId": "<DYNAMIC>",
+              "name": "Donor Persona",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "98****5340",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "city": "Mumbai",
+              "isAvailable": true,
+              "totalDonations": 0,
+              "reliabilityScore": 52.0,
+              "responseRate": 100.0,
+              "hasLocation": true,
+              "registeredAt": "2026-10-14T06:30:56.286026",
+              "lastUpdatedAt": "2026-10-14T06:30:57.441548",
+              "daysUntilEligible": 0,
+              "isEligible": true,
+              "reliabilityLevel": "MEDIUM",
+              "responseLevel": "GOOD",
+              "statusSummary": "Available + Eligible"
+            },
+            {
+              "donorId": 15,
+              "userId": "<DYNAMIC>",
+              "name": "Donor Persona",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "98****1717",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "city": "Mumbai",
+              "isAvailable": true,
+              "totalDonations": 0,
+              "reliabilityScore": 52.0,
+              "responseRate": 100.0,
+              "hasLocation": true,
+              "registeredAt": "2026-10-14T06:11:52.360877",
+              "lastUpdatedAt": "2026-10-14T06:11:52.978492",
+              "daysUntilEligible": 0,
+              "isEligible": true,
+              "reliabilityLevel": "MEDIUM",
+              "responseLevel": "GOOD",
+              "statusSummary": "Available + Eligible"
+            },
+            {
+              "donorId": 14,
+              "userId": "<DYNAMIC>",
+              "name": "Donor Persona",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "98****6829",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "city": "Mumbai",
+              "isAvailable": true,
+              "totalDonations": 0,
+              "reliabilityScore": 52.0,
+              "responseRate": 100.0,
+              "hasLocation": true,
+              "registeredAt": "2026-10-14T06:09:23.875587",
+              "lastUpdatedAt": "2026-10-14T06:09:24.501733",
+              "daysUntilEligible": 0,
+              "isEligible": true,
+              "reliabilityLevel": "MEDIUM",
+              "responseLevel": "GOOD",
+              "statusSummary": "Available + Eligible"
+            },
+            {
+              "donorId": 13,
+              "userId": "<DYNAMIC>",
+              "name": "Aarav Sharma (Donor)",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "98****5358",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "city": "Delhi",
+              "isAvailable": true,
+              "totalDonations": 0,
+              "reliabilityScore": 52.0,
+              "responseRate": 100.0,
+              "hasLocation": true,
+              "registeredAt": "2026-10-14T05:59:40.92122",
+              "lastUpdatedAt": "2026-10-14T05:59:42.614557",
+              "daysUntilEligible": 0,
+              "isEligible": true,
+              "reliabilityLevel": "MEDIUM",
+              "responseLevel": "GOOD",
+              "statusSummary": "Available + Eligible"
+            },
+            {
+              "donorId": 12,
+              "userId": "<DYNAMIC>",
+              "name": "LoadTest User 10",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "96****0010",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "city": "Delhi",
+              "isAvailable": true,
+              "totalDonations": 0,
+              "reliabilityScore": 50.0,
+              "responseRate": 0.0,
+              "hasLocation": true,
+              "registeredAt": "2026-10-13T06:02:31.330033",
+              "lastUpdatedAt": "2026-10-13T06:02:31.330033",
+              "daysUntilEligible": 0,
+              "isEligible": true,
+              "reliabilityLevel": "MEDIUM",
+              "responseLevel": "POOR",
+              "statusSummary": "Available + Eligible"
+            },
+            {
+              "donorId": 11,
+              "userId": "<DYNAMIC>",
+              "name": "LoadTest User 9",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "96****0009",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "city": "Delhi",
+              "isAvailable": true,
+              "totalDonations": 0,
+              "reliabilityScore": 50.0,
+              "responseRate": 0.0,
+              "hasLocation": true,
+              "registeredAt": "2026-10-13T06:02:30.889449",
+              "lastUpdatedAt": "2026-10-13T06:02:30.889449",
+              "daysUntilEligible": 0,
+              "isEligible": true,
+              "reliabilityLevel": "MEDIUM",
+              "responseLevel": "POOR",
+              "statusSummary": "Available + Eligible"
+            },
+            {
+              "donorId": 10,
+              "userId": "<DYNAMIC>",
+              "name": "LoadTest User 8",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "96****0008",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "city": "Delhi",
+              "isAvailable": true,
+              "totalDonations": 0,
+              "reliabilityScore": 50.0,
+              "responseRate": 0.0,
+              "hasLocation": true,
+              "registeredAt": "2026-10-13T06:02:30.472825",
+              "lastUpdatedAt": "2026-10-13T06:02:30.472825",
+              "daysUntilEligible": 0,
+              "isEligible": true,
+              "reliabilityLevel": "MEDIUM",
+              "responseLevel": "POOR",
+              "statusSummary": "Available + Eligible"
+            },
+            {
+              "donorId": 9,
+              "userId": "<DYNAMIC>",
+              "name": "LoadTest User 7",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "96****0007",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "city": "Delhi",
+              "isAvailable": true,
+              "totalDonations": 0,
+              "reliabilityScore": 50.0,
+              "responseRate": 0.0,
+              "hasLocation": true,
+              "registeredAt": "2026-10-13T06:02:29.991376",
+              "lastUpdatedAt": "2026-10-13T06:02:29.991376",
+              "daysUntilEligible": 0,
+              "isEligible": true,
+              "reliabilityLevel": "MEDIUM",
+              "responseLevel": "POOR",
+              "statusSummary": "Available + Eligible"
+            },
+            {
+              "donorId": 8,
+              "userId": "<DYNAMIC>",
+              "name": "LoadTest User 6",
+              "email": "<DYNAMIC>",
+              "phoneMasked": "96****0006",
+              "bloodGroup": "O+",
+              "bloodGroupDisplay": "O+",
+              "city": "Delhi",
+              "isAvailable": true,
+              "totalDonations": 0,
+              "reliabilityScore": 50.0,
+              "responseRate": 0.0,
+              "hasLocation": true,
+              "registeredAt": "2026-10-13T06:02:29.513923",
+              "lastUpdatedAt": "2026-10-13T06:02:29.513923",
+              "daysUntilEligible": 0,
+              "isEligible": true,
+              "reliabilityLevel": "MEDIUM",
+              "responseLevel": "POOR",
+              "statusSummary": "Available + Eligible"
+            }
+          ],
+          "empty": false,
+          "first": true,
+          "last": false,
+          "number": 0,
+          "numberOfElements": 10,
+          "pageable": {
+            "offset": 0,
+            "pageNumber": 0,
+            "pageSize": 10,
+            "paged": true,
+            "sort": {
+              "empty": false,
+              "sorted": true,
+              "unsorted": false
+            },
+            "unpaged": false
+          },
+          "size": 10,
+          "sort": {
+            "empty": false,
+            "sorted": true,
+            "unsorted": false
+          },
+          "totalElements": 17,
+          "totalPages": 2
+        },
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
+      "step": "ADMIN_SELF_DEMOTION_PREVENTION",
+      "description": "Admin attempts to demote own account (must be prevented)",
+      "rebuilt_status": 400,
+      "orig_status": 0,
+      "classification": "INTENTIONAL FIX",
+      "explanation": "Rebuilt app prevents admin from demoting themselves or removing last admin (Phase 3 hardening).",
+      "rebuilt_response": {
+        "success": false,
+        "message": "Administrators cannot demote their own account",
+        "error": "Administrators cannot demote their own account",
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
+      "step": "NOTIFICATION_UNAUTHORIZED_ALERT",
+      "description": "Regular user attempts to trigger notification alert (403)",
+      "rebuilt_status": 403,
+      "orig_status": 0,
+      "classification": "MATCH",
+      "explanation": "Correctly rejects non-admin/hospital users with 403 Forbidden.",
+      "rebuilt_response": {
+        "success": false,
+        "message": "Access Denied: insufficient permission",
+        "error": "Access Denied: insufficient permission",
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
+      "step": "AI_HEALTH_CHECK",
+      "description": "AI service connectivity probe",
+      "rebuilt_status": 401,
+      "orig_status": 0,
+      "classification": "MATCH",
+      "explanation": "AI Health check endpoint verified.",
+      "rebuilt_response": {
+        "success": false,
+        "message": "Unauthorized",
+        "error": "Unauthorized",
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
+      }
+    },
+    {
       "step": "TOKEN_REFRESH_ROTATION",
       "description": "Refresh access token using valid refresh token",
       "rebuilt_status": 200,
@@ -735,17 +2160,17 @@
         "success": true,
         "message": "Token refreshed",
         "data": {
-          "userId": "<DYNAMIC>",
           "accessToken": "<DYNAMIC>",
-          "refreshToken": "<DYNAMIC>",
-          "tokenType": "Bearer",
-          "name": "Donor Persona",
           "email": "<DYNAMIC>",
+          "expiresIn": 3600,
+          "name": "Donor Persona",
+          "refreshToken": "<DYNAMIC>",
           "roles": [
             "USER",
             "DONOR"
           ],
-          "expiresIn": 3600
+          "tokenType": "Bearer",
+          "userId": "<DYNAMIC>"
         },
         "timestamp": "<DYNAMIC>"
       },
@@ -776,6 +2201,7 @@
       "explanation": "Rebuilt app enforces refresh token rotation with single-use revocation in Redis, whereas original jar allowed reuse until TTL expiry.",
       "rebuilt_response": {
         "success": false,
+        "message": "Refresh token has been revoked",
         "error": "Refresh token has been revoked",
         "timestamp": "<DYNAMIC>"
       },
@@ -822,13 +2248,33 @@
       "description": "Verify blacklisted access token is rejected on reuse (401)",
       "rebuilt_status": 401,
       "orig_status": 401,
-      "classification": "MATCH",
-      "explanation": "Identical status code and response payload structure.",
+      "classification": "INTENTIONAL FIX",
+      "explanation": "Rebuilt app blacklists access token in Redis upon logout rejecting subsequent calls with 401, whereas original jar did not invalidate stateless JWT before expiry.",
       "rebuilt_response": {
-        "error": "Token is blacklisted"
+        "success": false,
+        "message": "Token is blacklisted",
+        "error": "Token is blacklisted",
+        "timestamp": "<DYNAMIC>"
       },
       "orig_response": {
         "error": "Token is blacklisted"
+      }
+    },
+    {
+      "step": "AUTH_DELETE_ACCOUNT_ME",
+      "description": "DPDP compliance: User requests personal data deletion/anonymization",
+      "rebuilt_status": 200,
+      "orig_status": 0,
+      "classification": "INTENTIONAL FIX",
+      "explanation": "Rebuilt app introduces DPDP compliance endpoint for user account anonymization/deletion; original jar lacked this endpoint.",
+      "rebuilt_response": {
+        "success": true,
+        "message": "Account successfully anonymized and deleted",
+        "data": "ACCOUNT_DELETED",
+        "timestamp": "<DYNAMIC>"
+      },
+      "orig_response": {
+        "error": "<urlopen error [Errno 111] Connection refused>"
       }
     }
   ]

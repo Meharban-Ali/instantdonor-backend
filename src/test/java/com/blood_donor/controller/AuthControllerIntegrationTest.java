@@ -6,10 +6,11 @@ import com.blood_donor.model.dto.request.auth_request.RefreshTokenRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,11 +27,12 @@ class AuthControllerIntegrationTest {
     @Autowired private MockMvc       mockMvc;
     @Autowired private ObjectMapper  objectMapper;
 
-    @org.springframework.boot.test.mock.mockito.MockBean
+    @MockitoBean
     private org.springframework.data.redis.core.RedisTemplate<String, Object> redisTemplate;
 
-    @org.mockito.Mock
-    private org.springframework.data.redis.core.ValueOperations<String, Object> valueOperations;
+    @SuppressWarnings("unchecked")
+    private org.springframework.data.redis.core.ValueOperations<String, Object> valueOperations =
+            org.mockito.Mockito.mock(org.springframework.data.redis.core.ValueOperations.class);
 
     @Test
     @DisplayName("POST /api/auth/register â€” successful registration")

@@ -1,8 +1,8 @@
 package com.blood_donor.ai_service.config;
 
 import com.blood_donor.ai_service.service.IAiMatchingService;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.stereotype.Component;
 
 @Component(value="ai-service")

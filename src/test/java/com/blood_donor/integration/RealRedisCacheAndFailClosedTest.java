@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -130,10 +131,12 @@ public class RealRedisCacheAndFailClosedTest extends BaseIntegrationTest {
         Cache donorCache = cacheManager.getCache("donorSearch");
         assertThat(donorCache).isNotNull();
 
-        // 2. Clear cache explicitly and verify eviction
+        // 2. Clear cache explicitly and verify eviction (async in Spring Data Redis 4.x)
         donorCache.clear();
-        Set<String> keysAfterClear = redisTemplate.keys("donorSearch*");
-        assertThat(keysAfterClear).isEmpty();
+        await().atMost(Duration.ofSeconds(3)).untilAsserted(() -> {
+            Set<String> keysAfterClear = redisTemplate.keys("donorSearch*");
+            assertThat(keysAfterClear).isEmpty();
+        });
     }
 
     @Test

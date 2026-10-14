@@ -12,7 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -38,6 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Phase 5 High-Concurrency Load & Performance Benchmark Test (100 Concurrent Users)")
+@AutoConfigureTestRestTemplate
 public class RealDatabasePhase5LoadTest extends BaseIntegrationTest {
 
     private static final Logger log = LoggerFactory.getLogger(RealDatabasePhase5LoadTest.class);

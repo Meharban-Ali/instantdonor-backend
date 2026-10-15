@@ -48,6 +48,9 @@ implements IAiMatchingService {
                 }
                 HttpEntity<AiMatchRequest> entity = new HttpEntity<>(request, this.buildJsonHeaders());
                 ResponseEntity resp = this.aiServiceRestTemplate.exchange(url, HttpMethod.POST, entity, AiMatchResponse.class, new Object[0]);
+                if (!resp.getStatusCode().is2xxSuccessful()) {
+                    throw ApiException.badRequest("AI matching failed with HTTP " + resp.getStatusCode().value());
+                }
                 return (AiMatchResponse)resp.getBody();
             });
             if (response == null) {
@@ -81,6 +84,9 @@ implements IAiMatchingService {
                 }
                 HttpEntity<AiDemandRequest> entity = new HttpEntity<>(request, this.buildJsonHeaders());
                 ResponseEntity resp = this.aiServiceRestTemplate.exchange(url, HttpMethod.POST, entity, AiDemandResponse.class, new Object[0]);
+                if (!resp.getStatusCode().is2xxSuccessful()) {
+                    throw ApiException.badRequest("AI prediction failed with HTTP " + resp.getStatusCode().value());
+                }
                 return (AiDemandResponse)resp.getBody();
             });
             if (response == null) {

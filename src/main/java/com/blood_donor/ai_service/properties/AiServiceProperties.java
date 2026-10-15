@@ -27,7 +27,7 @@ public class AiServiceProperties {
     private int connectionKeepAliveMs = 30000;
     private int maxDonors = 10;
     @NotBlank(message="AI service API key is required")
-    private @NotBlank(message="AI service API key is required") String apiKey = "local-dev-api-key-change-in-production";
+    private String apiKey;
 
     public String getUrl() {
         return this.url;

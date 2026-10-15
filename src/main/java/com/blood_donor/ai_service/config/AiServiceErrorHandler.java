@@ -26,5 +26,10 @@ implements ResponseErrorHandler {
             throw ApiException.internalServerError("AI service unavailable (HTTP " + statusCode + "): " + statusText);
         }
     }
+
+    @Override
+    public void handleError(java.net.URI url, org.springframework.http.HttpMethod method, ClientHttpResponse response) throws IOException {
+        this.handleError(response);
+    }
 }
 

@@ -20,10 +20,10 @@ implements ResponseErrorHandler {
         String statusText = response.getStatusText();
         log.error("AI service HTTP error: status={}, text={}", (Object)statusCode, (Object)statusText);
         if (response.getStatusCode().is4xxClientError()) {
-            throw ApiException.badRequest("AI service rejected request: " + statusText);
+            throw new ApiException("AI service rejected request: " + statusText, org.springframework.http.HttpStatus.valueOf(statusCode));
         }
         if (response.getStatusCode().is5xxServerError()) {
-            throw ApiException.internalServerError("AI service unavailable (HTTP " + statusCode + "): " + statusText);
+            throw new ApiException("AI service unavailable (HTTP " + statusCode + "): " + statusText, org.springframework.http.HttpStatus.valueOf(statusCode));
         }
     }
 

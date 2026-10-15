@@ -64,7 +64,7 @@ class AiMatchingServiceTest {
         this.aiProperties.setRetryDelayMs(50);
 
         this.retryTemplate = new RetryTemplate();
-        this.retryTemplate.setRetryPolicy(new SimpleRetryPolicy(1));
+        this.retryTemplate.setRetryPolicy(new com.blood_donor.ai_service.config.RestTemplateConfig.AiServiceRetryPolicy(3));
 
         this.aiMatchingService = new AiMatchingService(
                 this.restTemplate,
@@ -186,5 +186,91 @@ class AiMatchingServiceTest {
 
         assertTrue(healthy);
         this.mockServer.verify();
+    }
+
+    @Test
+    @DisplayName("Verify 401 Unauthorized is NOT retried - executed exactly once")
+    void testFindBestDonors_Unauthorized_DoesNotRetry() {
+        // mockServer expects exactly 1 call (default without times() is once())
+        this.mockServer.expect(org.springframework.test.web.client.ExpectedCount.once(), requestTo("http://ai-service:8000/api/v1/match-donors"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("X-API-KEY", "test-secret-api-key"))
+                .andRespond(withUnauthorizedRequest());
+
+        AiMatchRequest matchRequest = AiMatchRequest.from(
+                BloodGroup.A_POSITIVE, 28.6139, 77.2090, 25.0, UrgencyLevel.NORMAL, 2, 5, 105L
+        );
+
+        ApiException ex = assertThrows(ApiException.class, () -> this.aiMatchingService.findBestDonors(matchRequest));
+        assertEquals(org.springframework.http.HttpStatus.UNAUTHORIZED, ex.getStatus());
+        // Verify only 1 request was sent despite maxRetries=3
+        this.mockServer.verify();
+    }
+
+    @Test
+    @DisplayName("Verify 5xx Server Error IS retried up to maxRetries")
+    void testFindBestDonors_Server5xx_RetriesAndSucceeds() {
+        String jsonResponse = """
+            {
+              "blood_group": "A+",
+              "urgency": "NORMAL",
+              "total_found": 0,
+              "donors": [],
+              "processing_time_ms": 10.0,
+              "algorithm_version": "2.0.0",
+              "cached": false
+            }
+            """;
+
+        // First call fails with 500
+        this.mockServer.expect(requestTo("http://ai-service:8000/api/v1/match-donors"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withServerError());
+
+        // Second call succeeds with 200
+        this.mockServer.expect(requestTo("http://ai-service:8000/api/v1/match-donors"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess(jsonResponse, MediaType.APPLICATION_JSON));
+
+        AiMatchRequest matchRequest = AiMatchRequest.from(
+                BloodGroup.A_POSITIVE, 28.6139, 77.2090, 25.0, UrgencyLevel.NORMAL, 2, 5, 106L
+        );
+
+        AiMatchResponse response = this.aiMatchingService.findBestDonors(matchRequest);
+        assertNotNull(response);
+        assertEquals("A+", response.getBloodGroup());
+        this.mockServer.verify();
+    }
+
+    @Test
+    @DisplayName("Verify donor latitude, longitude, and user_id are NOT included in serialized JSON response")
+    void testDonorResultSerialization_ExcludesLatitudeLongitudeAndUserId() throws Exception {
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+
+        AiDonorResult donor = new AiDonorResult();
+        donor.setDonorId(42L);
+        donor.setUserId(999L);
+        donor.setLatitude(28.6139);
+        donor.setLongitude(77.2090);
+        donor.setDistanceKm(3.5);
+        donor.setName("Jane Doe");
+        donor.setCity("Delhi");
+
+        AiMatchResponse matchResponse = new AiMatchResponse();
+        matchResponse.setBloodGroup("A+");
+        matchResponse.setTotalFound(1);
+        matchResponse.setDonors(List.of(donor));
+
+        String json = mapper.writeValueAsString(matchResponse);
+
+        // Assert sensitive geo-coordinates & user_id are strictly excluded
+        assertFalse(json.contains("latitude"), "Exact latitude must not be present in response JSON");
+        assertFalse(json.contains("longitude"), "Exact longitude must not be present in response JSON");
+        assertFalse(json.contains("user_id"), "Internal user_id must not be present in response JSON");
+
+        // Assert non-sensitive / required fields are present
+        assertTrue(json.contains("distance_km"), "distance_km must be present in response JSON");
+        assertTrue(json.contains("donor_id"), "donor_id must be present in response JSON");
     }
 }

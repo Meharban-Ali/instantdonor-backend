@@ -56,13 +56,43 @@ public class RestTemplateConfig {
     @Bean(name={"aiServiceRetryTemplate"})
     public RetryTemplate aiServiceRetryTemplate() {
         RetryTemplate retryTemplate = new RetryTemplate();
-        SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(this.aiProperties.getMaxRetries());
-        retryTemplate.setRetryPolicy((RetryPolicy)retryPolicy);
+        AiServiceRetryPolicy retryPolicy = new AiServiceRetryPolicy(this.aiProperties.getMaxRetries());
+        retryTemplate.setRetryPolicy(retryPolicy);
         FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
         backOffPolicy.setBackOffPeriod((long)this.aiProperties.getRetryDelayMs());
-        retryTemplate.setBackOffPolicy((BackOffPolicy)backOffPolicy);
-        log.info("AI RetryTemplate configured: maxRetries={}, delayMs={}", (Object)this.aiProperties.getMaxRetries(), (Object)this.aiProperties.getRetryDelayMs());
+        retryTemplate.setBackOffPolicy(backOffPolicy);
+        log.info("AI RetryTemplate configured: maxRetries={}, delayMs={}", this.aiProperties.getMaxRetries(), this.aiProperties.getRetryDelayMs());
         return retryTemplate;
+    }
+
+    public static class AiServiceRetryPolicy extends SimpleRetryPolicy {
+        public AiServiceRetryPolicy(int maxAttempts) {
+            super(maxAttempts);
+        }
+
+        @Override
+        public boolean canRetry(org.springframework.retry.RetryContext context) {
+            Throwable lastThrowable = context.getLastThrowable();
+            if (lastThrowable != null && isNonRetryable(lastThrowable)) {
+                return false;
+            }
+            return super.canRetry(context);
+        }
+
+        private boolean isNonRetryable(Throwable t) {
+            if (t instanceof com.blood_donor.exception.ApiException apiEx) {
+                if (apiEx.getStatus() != null && apiEx.getStatus().is4xxClientError()) {
+                    return true;
+                }
+            }
+            if (t instanceof org.springframework.web.client.HttpClientErrorException) {
+                return true;
+            }
+            if (t.getCause() != null && t.getCause() != t) {
+                return isNonRetryable(t.getCause());
+            }
+            return false;
+        }
     }
 
     public RestTemplateConfig(AiServiceProperties aiProperties) {

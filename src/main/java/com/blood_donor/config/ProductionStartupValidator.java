@@ -58,9 +58,16 @@ public class ProductionStartupValidator implements ApplicationRunner {
             String aiApiKey = this.environment.getProperty("app.ai-service.api-key");
             if (aiApiKey != null && !aiApiKey.isBlank()) {
                 String trimmedKey = aiApiKey.trim();
+                if (trimmedKey.length() < 32) {
+                    throw new IllegalStateException("FATAL STARTUP ERROR: app.ai-service.api-key is too short in production. Minimum required length is 32 characters, found " + trimmedKey.length() + ".");
+                }
                 if ("local-dev-api-key-change-in-production".equalsIgnoreCase(trimmedKey)
                         || "change-me".equalsIgnoreCase(trimmedKey)
-                        || "your_ai_service_api_key".equalsIgnoreCase(trimmedKey)) {
+                        || "your_ai_service_api_key".equalsIgnoreCase(trimmedKey)
+                        || "12345678901234567890123456789012".equals(trimmedKey)
+                        || trimmedKey.toLowerCase().contains("changeme")
+                        || trimmedKey.toLowerCase().contains("change-in-production")
+                        || trimmedKey.toLowerCase().contains("test-key")) {
                     throw new IllegalStateException("FATAL STARTUP ERROR: app.ai-service.api-key is using a known insecure default value in production. Set a secure AI_SERVICE_API_KEY.");
                 }
             }

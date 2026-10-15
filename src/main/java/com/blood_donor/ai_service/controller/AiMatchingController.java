@@ -38,7 +38,7 @@ public class AiMatchingController {
     private final IAiMatchingService aiService;
 
     @PostMapping(value={"/match-donors"})
-    @PreAuthorize(value="isAuthenticated()")
+    @PreAuthorize(value="hasRole('ADMIN') or hasRole('HOSPITAL')")
     @SecurityRequirement(name="bearerAuth")
     @Operation(summary="AI Donor Matching", description="Find best donors using AI scoring algorithm.\n\nScoring Formula:\n  score = 0.40\u00d7distance + 0.30\u00d7reliability + 0.20\u00d7eligibility + 0.10\u00d7response_rate\n\nRanking:\n  CRITICAL \u2192 distance priority\n  NORMAL/URGENT \u2192 AI score priority\n  Eligible donors always first")
     public ResponseEntity<ApiResponse<AiMatchResponse>> matchDonors(@Valid @RequestBody AiMatchRequest request) {
@@ -91,7 +91,7 @@ public class AiMatchingController {
     }
 
     @GetMapping(value={"/match-donors/quick"})
-    @PreAuthorize(value="isAuthenticated()")
+    @PreAuthorize(value="hasRole('ADMIN') or hasRole('HOSPITAL')")
     @SecurityRequirement(name="bearerAuth")
     @Operation(summary="Quick AI Donor Search", description="Quick search via query params \u2014 for testing.\nUse POST /match-donors for production.")
     public ResponseEntity<ApiResponse<AiMatchResponse>> quickMatch(@RequestParam BloodGroup bloodGroup, @RequestParam @Min(value=-90L) @Max(value=90L) @Min(value=-90L) @Max(value=90L) double latitude, @RequestParam @Min(value=-180L) @Max(value=180L) @Min(value=-180L) @Max(value=180L) double longitude, @RequestParam(defaultValue="25.0") @Min(value=1L) @Max(value=200L) @Min(value=1L) @Max(value=200L) double radiusKm, @RequestParam(defaultValue="NORMAL") UrgencyLevel urgency, @RequestParam(defaultValue="10") @Min(value=1L) @Max(value=50L) @Min(value=1L) @Max(value=50L) int limit) {

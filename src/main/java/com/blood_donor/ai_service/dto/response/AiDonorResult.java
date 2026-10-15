@@ -9,7 +9,7 @@ import java.time.LocalDate;
 public class AiDonorResult {
     @JsonProperty(value="donor_id")
     private Long donorId;
-    @JsonProperty(value="user_id")
+    @JsonProperty(value="user_id", access=JsonProperty.Access.WRITE_ONLY)
     private Long userId;
     private Integer rank;
     private String name;
@@ -20,7 +20,9 @@ public class AiDonorResult {
     @JsonProperty(value="blood_group_display")
     private String bloodGroupDisplay;
     private String city;
+    @JsonProperty(access=JsonProperty.Access.WRITE_ONLY)
     private Double latitude;
+    @JsonProperty(access=JsonProperty.Access.WRITE_ONLY)
     private Double longitude;
     @JsonProperty(value="distance_km")
     private Double distanceKm;
@@ -55,6 +57,7 @@ public class AiDonorResult {
         return this.donorId;
     }
 
+    @JsonProperty(value="user_id", access=JsonProperty.Access.WRITE_ONLY)
     public Long getUserId() {
         return this.userId;
     }
@@ -83,10 +86,12 @@ public class AiDonorResult {
         return this.city;
     }
 
+    @JsonProperty(access=JsonProperty.Access.WRITE_ONLY)
     public Double getLatitude() {
         return this.latitude;
     }
 
+    @JsonProperty(access=JsonProperty.Access.WRITE_ONLY)
     public Double getLongitude() {
         return this.longitude;
     }

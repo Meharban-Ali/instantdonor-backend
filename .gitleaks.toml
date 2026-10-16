@@ -1,0 +1,13 @@
+title = "Backend Gitleaks Configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore untracked local env, build output, and local test certs"
+paths = [
+    '''\.env.*''',
+    '''target/.*''',
+    '''nginx/certs/.*''',
+    '''\.git/.*''',
+]

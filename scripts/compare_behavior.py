@@ -557,7 +557,11 @@ def run_suite():
 
     # Step 27: Admin Login
     def step_admin_login(env, base, state):
-        c, b, h = http_request(base, "POST", "/api/auth/login", body={"email": "admin@blooddonor.com", "password": "Admin@StrongPass123!"})
+        admin_pass = os.environ.get("ADMIN_PASSWORD")
+        if not admin_pass:
+            raise RuntimeError("ADMIN_PASSWORD environment variable is required for admin behavior comparison test.")
+        admin_email = os.environ.get("ADMIN_EMAIL", "admin@blooddonor.com")
+        c, b, h = http_request(base, "POST", "/api/auth/login", body={"email": admin_email, "password": admin_pass})
         if c == 200 and isinstance(b, dict) and "data" in b:
             state["tokens"]["admin_access"] = b["data"].get("accessToken")
             state["ids"]["admin_id"] = b["data"].get("userId")

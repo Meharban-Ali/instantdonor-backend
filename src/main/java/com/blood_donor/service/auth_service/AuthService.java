@@ -329,9 +329,14 @@ public class AuthService {
     }
 
     @Transactional
-    public void deleteAccount(Long userId, String accessToken) {
+    public void deleteAccount(Long userId, String accessToken, String password) {
         User user = (User)this.userRepository.findById(userId)
                 .orElseThrow(() -> ApiException.notFound("User not found"));
+
+        if (password == null || password.isBlank() || !this.passwordEncoder.matches((CharSequence)password, user.getPassword())) {
+            log.warn("Account deletion rejected: Invalid password for userId={}", userId);
+            throw ApiException.unauthorized("Invalid current password for account deletion");
+        }
 
         if (user.hasRole(Role.ADMIN)) {
             long activeAdminCount = this.userRepository.countByRoleAndIsActiveTrue(Role.ADMIN);

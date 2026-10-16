@@ -147,10 +147,12 @@ public class AuthController {
     @PreAuthorize(value="isAuthenticated()")
     @SecurityRequirement(name="bearerAuth")
     @Operation(summary="Delete and anonymize my account (DPDP Right to Erasure)")
-    public ResponseEntity<ApiResponse<String>> deleteAccount(@RequestHeader(value="Authorization", required=false) String authHeader) {
+    public ResponseEntity<ApiResponse<String>> deleteAccount(
+            @Valid @RequestBody com.blood_donor.model.dto.request.auth_request.DeleteAccountRequest request,
+            @RequestHeader(value="Authorization", required=false) String authHeader) {
         Long userId = this.securityUtils.getCurrentUserId();
         String accessToken = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-        this.authService.deleteAccount(userId, accessToken);
+        this.authService.deleteAccount(userId, accessToken, request.getPassword());
         this.auditLogService.log("USER_ACCOUNT_DELETE", "User requested account erasure: id=" + userId, "userId:" + userId, this.getClientIp());
         return ResponseEntity.ok(ApiResponse.success("Account successfully anonymized and deleted", "ACCOUNT_DELETED"));
     }

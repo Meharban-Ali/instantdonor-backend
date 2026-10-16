@@ -371,7 +371,9 @@ public class RealDatabasePhase3HardeningTest extends BaseIntegrationTest {
         String token = jwtTokenProvider.generateAccessToken(user.getEmail(), user.getRoles(), user.getId());
 
         mockMvc.perform(delete("/api/auth/me")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("{\"password\":\"Password@123\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").value("ACCOUNT_DELETED"));

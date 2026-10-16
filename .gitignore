@@ -65,8 +65,10 @@ htmlcov/
 logs/
 *.log
 
-# ── UPLOADS ──────────────────────────────────
+# ── UPLOADS & SCREENSHOTS ─────────────────────
 uploads/
+screenshots/
+*.png
 *.pdf
 *.docx
 

@@ -97,6 +97,16 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.failure(exp.getMessage()));
     }
 
+    // Malformed JSON / missing request body — 400 Bad Request
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<?>> handleHttpMessageNotReadable(
+            org.springframework.http.converter.HttpMessageNotReadableException exp) {
+        log.warn("Malformed or missing request body: {}", exp.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.failure("Required request body is missing or malformed"));
+    }
+
     // Catch-all — 500 Internal Server Error (Zero stack trace leak)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleGenericsException(Exception exp) {

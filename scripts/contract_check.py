@@ -9,6 +9,9 @@ import re
 import sys
 from pathlib import Path
 
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
 # Paths relative to backend root
 BACKEND_SRC = Path(__file__).resolve().parent.parent / "src" / "main" / "java"
 FRONTEND_SRC = Path(__file__).resolve().parent.parent.parent.parent / "Frontend" / "ai-blood-donor-ui" / "src"

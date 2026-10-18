@@ -34,8 +34,8 @@ COPY --from=builder --chown=appuser:appgroup /workspace/target/*.jar app.jar
 # Run as non-root user
 USER appuser
 
-# Container-aware JVM optimization flags
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=50.0 -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/app/logs/heapdump.hprof"
+# Container-aware JVM optimization flags tuned for 512MB RAM constraints (Render free tier)
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=55.0 -XX:InitialRAMPercentage=40.0 -Xss512k -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/app/logs/heapdump.hprof"
 ENV SPRING_PROFILES_ACTIVE=prod
 ENV SERVER_PORT=8080
 
@@ -43,6 +43,6 @@ EXPOSE 8080
 
 # Native Docker Healthcheck targeting public Actuator health probe
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
-  CMD curl -fsS http://localhost:8080/actuator/health || exit 1
+  CMD curl -fsS http://localhost:${PORT:-8080}/actuator/health || exit 1
 
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]

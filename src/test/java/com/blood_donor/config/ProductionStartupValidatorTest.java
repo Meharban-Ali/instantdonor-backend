@@ -14,7 +14,7 @@ class ProductionStartupValidatorTest {
     void testProd_FailsWhenAiKeyMissing() {
         MockEnvironment env = new MockEnvironment();
         env.setActiveProfiles("prod");
-        env.setProperty("spring.datasource.url", "jdbc:mysql://localhost:3306/db");
+        env.setProperty("spring.datasource.url", "jdbc:postgresql://localhost:5432/db");
         env.setProperty("spring.datasource.username", "root");
         env.setProperty("spring.datasource.password", "secret");
         env.setProperty("spring.data.redis.host", "localhost");
@@ -36,7 +36,7 @@ class ProductionStartupValidatorTest {
     void testProd_FailsWhenAiKeyTooShort() {
         MockEnvironment env = new MockEnvironment();
         env.setActiveProfiles("prod");
-        env.setProperty("spring.datasource.url", "jdbc:mysql://localhost:3306/db");
+        env.setProperty("spring.datasource.url", "jdbc:postgresql://localhost:5432/db");
         env.setProperty("spring.datasource.username", "root");
         env.setProperty("spring.datasource.password", "secret");
         env.setProperty("spring.data.redis.host", "localhost");
@@ -59,7 +59,7 @@ class ProductionStartupValidatorTest {
     void testProd_FailsWhenAiKeyUsesKnownDefault() {
         MockEnvironment env = new MockEnvironment();
         env.setActiveProfiles("prod");
-        env.setProperty("spring.datasource.url", "jdbc:mysql://localhost:3306/db");
+        env.setProperty("spring.datasource.url", "jdbc:postgresql://localhost:5432/db");
         env.setProperty("spring.datasource.username", "root");
         env.setProperty("spring.datasource.password", "secret");
         env.setProperty("spring.data.redis.host", "localhost");
@@ -81,7 +81,7 @@ class ProductionStartupValidatorTest {
     void testProd_SucceedsWithSecureKey() {
         MockEnvironment env = new MockEnvironment();
         env.setActiveProfiles("prod");
-        env.setProperty("spring.datasource.url", "jdbc:mysql://localhost:3306/db");
+        env.setProperty("spring.datasource.url", "jdbc:postgresql://localhost:5432/db");
         env.setProperty("spring.datasource.username", "root");
         env.setProperty("spring.datasource.password", "secret");
         env.setProperty("spring.data.redis.host", "localhost");

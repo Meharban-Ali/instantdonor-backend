@@ -73,7 +73,7 @@ extends JpaRepository<BloodRequest, Long> {
     @EntityGraph(attributePaths = {"createdBy"})
     public Page<BloodRequest> findByStatusOrderByCreatedAtDesc(BloodRequestStatus var1, Pageable var2);
 
-    @Query(value="SELECT AVG(TIMESTAMPDIFF(HOUR, created_at, fulfilled_at))\nFROM blood_requests\nWHERE status = 'FULFILLED'\n  AND fulfilled_at IS NOT NULL\n", nativeQuery=true)
+    @Query(value="SELECT AVG(EXTRACT(EPOCH FROM (fulfilled_at - created_at)) / 3600.0)\nFROM blood_requests\nWHERE status = 'FULFILLED'\n  AND fulfilled_at IS NOT NULL\n", nativeQuery=true)
     public Double findAvgFulfillmentHours();
 
     @Query(value="SELECT br.city      AS city,\n       COUNT(br.id) AS activeCount\nFROM BloodRequest br\nWHERE br.status IN :statuses\nGROUP BY br.city\nORDER BY COUNT(br.id) DESC\n")

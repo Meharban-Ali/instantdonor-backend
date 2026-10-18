@@ -18,16 +18,16 @@ public class RealDatabaseSanityTest extends BaseIntegrationTest {
     private StringRedisTemplate redisTemplate;
 
     @Test
-    @DisplayName("Verify Flyway migrations V1 & V2 applied to MySQL and tables exist")
+    @DisplayName("Verify Flyway migrations V1 & V2 applied to PostgreSQL and tables exist")
     void testFlywayMigrationsApplied() {
         Integer userTableCount = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'blood_donor_test' AND table_name = 'users'",
+                "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'users'",
                 Integer.class
         );
         assertThat(userTableCount).isEqualTo(1);
 
         Integer donorIndexCount = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema = 'blood_donor_test' AND table_name = 'donor_profiles' AND index_name = 'idx_donor_city_group_avail'",
+                "SELECT COUNT(*) FROM pg_indexes WHERE schemaname = 'public' AND tablename = 'donor_profiles' AND indexname = 'idx_donor_city_group_avail'",
                 Integer.class
         );
         assertThat(donorIndexCount).isGreaterThan(0);

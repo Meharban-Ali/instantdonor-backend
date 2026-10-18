@@ -87,12 +87,12 @@ public class NotificationController {
         CompletableFuture<Boolean> result = this.emailService.sendHtmlEmail(email, "[TEST] Blood Donor Network \u2014 Email Test", "test-email", Map.of("recipientEmail", email, "testTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm:ss")), "environment", activeProfile, "sentBy", authentication != null ? authentication.getName() : "system"));
         result.whenComplete((ok, ex) -> {
             if (Boolean.TRUE.equals(ok)) {
-                log.info("Test email delivered: to={}", (Object)email);
+                log.info("Test email delivered: to={}", com.blood_donor.utils.PiiMasker.maskEmail(email));
             } else {
-                log.warn("Test email failed: to={}", (Object)email);
+                log.warn("Test email failed: to={}", com.blood_donor.utils.PiiMasker.maskEmail(email));
             }
         });
-        log.info("Test email dispatched: to={}", (Object)email);
+        log.info("Test email dispatched: to={}", com.blood_donor.utils.PiiMasker.maskEmail(email));
         return ResponseEntity.status((HttpStatusCode)HttpStatus.ACCEPTED).body(ApiResponse.success("Test email dispatched to: " + email + " \u2014 check inbox in a few seconds", "TEST_EMAIL_SENT"));
     }
 

@@ -85,6 +85,16 @@ public class DonorController {
         return ResponseEntity.ok(ApiResponse.success("Profile updated successfully", response));
     }
 
+    @PatchMapping(value={"/preferences"})
+    @PreAuthorize(value="hasRole('DONOR')")
+    @SecurityRequirement(name="bearerAuth")
+    @Operation(summary="Update notification preferences", description="Toggle SMS and email emergency alerts.")
+    public ResponseEntity<ApiResponse<DonorResponse>> updatePreferences(@RequestBody com.blood_donor.model.dto.request.donor_request.DonorPreferencesRequest request) {
+        Long userId = this.securityUtils.getCurrentUserId();
+        DonorResponse response = this.profileService.updatePreferences(userId, request);
+        return ResponseEntity.ok(ApiResponse.success("Notification preferences updated successfully", response));
+    }
+
     @GetMapping(value={"/availability"})
     @PreAuthorize(value="hasRole('DONOR')")
     @SecurityRequirement(name="bearerAuth")

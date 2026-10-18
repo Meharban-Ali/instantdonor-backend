@@ -18,13 +18,16 @@ public class TwilioClientFactory {
             return true;
         }
         if (!this.properties.isConfigured()) {
-            log.warn("Twilio not configured \u2014 SMS disabled. Set app.twilio.account-sid, auth-token, phone-number in application.properties");
+            log.warn("Twilio not configured — SMS disabled. Set app.twilio.account-sid, auth-token, and phone-number or messaging-service-sid in application.properties");
             return false;
         }
         if (this.initialized.compareAndSet(false, true)) {
             try {
-                Twilio.init((String)this.properties.getAccountSid(), (String)this.properties.getAuthToken());
-                log.info("Twilio initialized: phoneNumber={}", (Object)this.properties.getPhoneNumber());
+                Twilio.init(this.properties.getAccountSid(), this.properties.getAuthToken());
+                String senderInfo = (this.properties.getMessagingServiceSid() != null && !this.properties.getMessagingServiceSid().isBlank())
+                        ? "messagingServiceSid=" + this.properties.getMessagingServiceSid()
+                        : "phoneNumber=" + com.blood_donor.utils.PiiMasker.maskPhone(this.properties.getPhoneNumber());
+                log.info("Twilio initialized: {}", senderInfo);
                 return true;
             }
             catch (Exception e) {

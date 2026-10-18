@@ -22,6 +22,10 @@ public class NotificationProperties {
     private @Min(value=1L) @Max(value=200L) double searchRadiusKm = 25.0;
     private boolean fallbackEnabled = true;
     private String emailSubjectPrefix = "[Blood Donor Network]";
+    @Min(value=1L)
+    private int maxSmsPerDonorPerDay = 3;
+    @Min(value=1L)
+    private int globalDailySmsCap = 500;
 
     public int getMaxSmsRecipients() {
         return this.maxSmsRecipients;
@@ -51,6 +55,14 @@ public class NotificationProperties {
         return this.emailSubjectPrefix;
     }
 
+    public int getMaxSmsPerDonorPerDay() {
+        return this.maxSmsPerDonorPerDay;
+    }
+
+    public int getGlobalDailySmsCap() {
+        return this.globalDailySmsCap;
+    }
+
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
@@ -69,6 +81,14 @@ public class NotificationProperties {
 
     public void setEmailSubjectPrefix(String emailSubjectPrefix) {
         this.emailSubjectPrefix = emailSubjectPrefix;
+    }
+
+    public void setMaxSmsPerDonorPerDay(int maxSmsPerDonorPerDay) {
+        this.maxSmsPerDonorPerDay = maxSmsPerDonorPerDay;
+    }
+
+    public void setGlobalDailySmsCap(int globalDailySmsCap) {
+        this.globalDailySmsCap = globalDailySmsCap;
     }
 }
 

@@ -29,6 +29,9 @@ public class DonorMapper {
                 .donationStats(DonationStats.builder().totalDonations(profile.getTotalDonations()).reliabilityScore(profile.getReliabilityScore()).responseRate(profile.getResponseRate()).lastDonationDate(profile.getLastDonationDate()).nextEligibleDate(profile.getNextEligibleDate()).isEligible(profile.isEligibleToDonate()).build())
                 .isAvailable(profile.isAvailable())
                 .distanceKm(distanceKm != null ? Double.valueOf((double)Math.round(distanceKm * 10.0) / 10.0) : null)
+                .smsAlertsEnabled(profile.isSmsAlertsEnabled())
+                .emailAlertsEnabled(profile.isEmailAlertsEnabled())
+                .consentUpdatedAt(profile.getConsentUpdatedAt())
                 .createdAt(profile.getCreatedAt())
                 .build();
     }

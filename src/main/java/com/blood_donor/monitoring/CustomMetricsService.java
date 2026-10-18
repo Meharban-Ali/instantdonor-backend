@@ -13,6 +13,10 @@ public class CustomMetricsService {
     private final Counter smsSuccessCounter;
     private final Counter smsFailureCounter;
     private final Counter distributedAttackCounter;
+    private final Counter emailSuccessCounter;
+    private final Counter emailFailureCounter;
+    private final Counter smsDonorLimitCounter;
+    private final Counter smsGlobalLimitCounter;
 
     public CustomMetricsService(MeterRegistry registry) {
         this.authFailureCounter = Counter.builder("auth.failures")
@@ -38,6 +42,22 @@ public class CustomMetricsService {
         this.distributedAttackCounter = Counter.builder("auth.distributed_attack.alerts")
                 .description("Total number of distributed brute-force attack alerts detected")
                 .register(registry);
+
+        this.emailSuccessCounter = Counter.builder("email.send.success")
+                .description("Total number of successfully sent emails")
+                .register(registry);
+
+        this.emailFailureCounter = Counter.builder("email.send.failure")
+                .description("Total number of failed email deliveries")
+                .register(registry);
+
+        this.smsDonorLimitCounter = Counter.builder("sms.limit.donor.exceeded")
+                .description("Total number of SMS alerts skipped due to donor daily limit")
+                .register(registry);
+
+        this.smsGlobalLimitCounter = Counter.builder("sms.limit.global.exceeded")
+                .description("Total number of SMS alerts skipped due to global daily cap")
+                .register(registry);
     }
 
     public void recordAuthFailure() {
@@ -62,5 +82,21 @@ public class CustomMetricsService {
 
     public void recordDistributedAttackAlert() {
         this.distributedAttackCounter.increment();
+    }
+
+    public void recordEmailSuccess() {
+        this.emailSuccessCounter.increment();
+    }
+
+    public void recordEmailFailure() {
+        this.emailFailureCounter.increment();
+    }
+
+    public void recordSmsDonorLimitExceeded() {
+        this.smsDonorLimitCounter.increment();
+    }
+
+    public void recordSmsGlobalLimitExceeded() {
+        this.smsGlobalLimitCounter.increment();
     }
 }

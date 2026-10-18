@@ -56,6 +56,12 @@ public class DonorProfile {
     private Integer totalDonations;
     @Column(nullable=false, precision=5, scale=2)
     private BigDecimal responseRate;
+    @Column(name="sms_alerts_enabled", nullable=false)
+    private boolean smsAlertsEnabled = false;
+    @Column(name="email_alerts_enabled", nullable=false)
+    private boolean emailAlertsEnabled = false;
+    @Column(name="consent_updated_at")
+    private LocalDateTime consentUpdatedAt;
     @CreatedDate
     @Column(updatable=false)
     private LocalDateTime createdAt;
@@ -217,6 +223,30 @@ public class DonorProfile {
         this.updatedAt = updatedAt;
     }
 
+    public boolean isSmsAlertsEnabled() {
+        return this.smsAlertsEnabled;
+    }
+
+    public void setSmsAlertsEnabled(boolean smsAlertsEnabled) {
+        this.smsAlertsEnabled = smsAlertsEnabled;
+    }
+
+    public boolean isEmailAlertsEnabled() {
+        return this.emailAlertsEnabled;
+    }
+
+    public void setEmailAlertsEnabled(boolean emailAlertsEnabled) {
+        this.emailAlertsEnabled = emailAlertsEnabled;
+    }
+
+    public LocalDateTime getConsentUpdatedAt() {
+        return this.consentUpdatedAt;
+    }
+
+    public void setConsentUpdatedAt(LocalDateTime consentUpdatedAt) {
+        this.consentUpdatedAt = consentUpdatedAt;
+    }
+
     public DonorProfile(Long id, User user, BloodGroup bloodGroup, String city, String state, BigDecimal latitude, BigDecimal longitude, boolean isAvailable, LocalDate lastDonationDate, LocalDate nextEligibleDate, BigDecimal reliabilityScore, Integer totalDonations, BigDecimal responseRate, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.user = user;
@@ -231,6 +261,27 @@ public class DonorProfile {
         this.reliabilityScore = reliabilityScore;
         this.totalDonations = totalDonations;
         this.responseRate = responseRate;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public DonorProfile(Long id, User user, BloodGroup bloodGroup, String city, String state, BigDecimal latitude, BigDecimal longitude, boolean isAvailable, LocalDate lastDonationDate, LocalDate nextEligibleDate, BigDecimal reliabilityScore, Integer totalDonations, BigDecimal responseRate, boolean smsAlertsEnabled, boolean emailAlertsEnabled, LocalDateTime consentUpdatedAt, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.user = user;
+        this.bloodGroup = bloodGroup;
+        this.city = city;
+        this.state = state;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.isAvailable = isAvailable;
+        this.lastDonationDate = lastDonationDate;
+        this.nextEligibleDate = nextEligibleDate;
+        this.reliabilityScore = reliabilityScore;
+        this.totalDonations = totalDonations;
+        this.responseRate = responseRate;
+        this.smsAlertsEnabled = smsAlertsEnabled;
+        this.emailAlertsEnabled = emailAlertsEnabled;
+        this.consentUpdatedAt = consentUpdatedAt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -260,6 +311,9 @@ public class DonorProfile {
         private Integer totalDonations$value;
         private boolean responseRate$set;
         private BigDecimal responseRate$value;
+        private boolean smsAlertsEnabled;
+        private boolean emailAlertsEnabled;
+        private LocalDateTime consentUpdatedAt;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
@@ -345,6 +399,21 @@ public class DonorProfile {
             return this;
         }
 
+        public DonorProfileBuilder smsAlertsEnabled(boolean smsAlertsEnabled) {
+            this.smsAlertsEnabled = smsAlertsEnabled;
+            return this;
+        }
+
+        public DonorProfileBuilder emailAlertsEnabled(boolean emailAlertsEnabled) {
+            this.emailAlertsEnabled = emailAlertsEnabled;
+            return this;
+        }
+
+        public DonorProfileBuilder consentUpdatedAt(LocalDateTime consentUpdatedAt) {
+            this.consentUpdatedAt = consentUpdatedAt;
+            return this;
+        }
+
         public DonorProfile build() {
             boolean isAvailable$value = this.isAvailable$value;
             if (!this.isAvailable$set) {
@@ -362,11 +431,11 @@ public class DonorProfile {
             if (!this.responseRate$set) {
                 responseRate$value = DonorProfile.$default$responseRate();
             }
-            return new DonorProfile(this.id, this.user, this.bloodGroup, this.city, this.state, this.latitude, this.longitude, isAvailable$value, this.lastDonationDate, this.nextEligibleDate, reliabilityScore$value, totalDonations$value, responseRate$value, this.createdAt, this.updatedAt);
+            return new DonorProfile(this.id, this.user, this.bloodGroup, this.city, this.state, this.latitude, this.longitude, isAvailable$value, this.lastDonationDate, this.nextEligibleDate, reliabilityScore$value, totalDonations$value, responseRate$value, this.smsAlertsEnabled, this.emailAlertsEnabled, this.consentUpdatedAt, this.createdAt, this.updatedAt);
         }
 
         public String toString() {
-            return "DonorProfile.DonorProfileBuilder(id=" + this.id + ", user=" + this.user + ", bloodGroup=" + this.bloodGroup + ", city=" + this.city + ", state=" + this.state + ", latitude=" + this.latitude + ", longitude=" + this.longitude + ", isAvailable$value=" + this.isAvailable$value + ", lastDonationDate=" + this.lastDonationDate + ", nextEligibleDate=" + this.nextEligibleDate + ", reliabilityScore$value=" + this.reliabilityScore$value + ", totalDonations$value=" + this.totalDonations$value + ", responseRate$value=" + this.responseRate$value + ", createdAt=" + this.createdAt + ", updatedAt=" + this.updatedAt + ")";
+            return "DonorProfile.DonorProfileBuilder(id=" + this.id + ", user=" + this.user + ", bloodGroup=" + this.bloodGroup + ", city=" + this.city + ", state=" + this.state + ", latitude=" + this.latitude + ", longitude=" + this.longitude + ", isAvailable$value=" + this.isAvailable$value + ", lastDonationDate=" + this.lastDonationDate + ", nextEligibleDate=" + this.nextEligibleDate + ", reliabilityScore$value=" + this.reliabilityScore$value + ", totalDonations$value=" + this.totalDonations$value + ", responseRate$value=" + this.responseRate$value + ", smsAlertsEnabled=" + this.smsAlertsEnabled + ", emailAlertsEnabled=" + this.emailAlertsEnabled + ", consentUpdatedAt=" + this.consentUpdatedAt + ", createdAt=" + this.createdAt + ", updatedAt=" + this.updatedAt + ")";
         }
     }
 }

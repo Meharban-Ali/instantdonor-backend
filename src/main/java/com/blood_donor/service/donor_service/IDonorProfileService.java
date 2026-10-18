@@ -9,6 +9,8 @@ public interface IDonorProfileService {
 
     public DonorResponse updateProfile(Long var1, DonorUpdateRequest var2);
 
+    public DonorResponse updatePreferences(Long userId, com.blood_donor.model.dto.request.donor_request.DonorPreferencesRequest req);
+
     public String toggleAvailability(Long var1);
 
     public EligibilityResponse checkEligibility(Long var1);

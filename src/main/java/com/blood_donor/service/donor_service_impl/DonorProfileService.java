@@ -56,6 +56,23 @@ implements IDonorProfileService {
 
     @Override
     @Transactional
+    @CacheEvict(value={"donorSearch", "donorProfile"}, allEntries=true)
+    public DonorResponse updatePreferences(Long userId, com.blood_donor.model.dto.request.donor_request.DonorPreferencesRequest req) {
+        DonorProfile profile = this.findProfileByUserId(userId);
+        if (req.getSmsAlertsEnabled() != null) {
+            profile.setSmsAlertsEnabled(req.getSmsAlertsEnabled());
+        }
+        if (req.getEmailAlertsEnabled() != null) {
+            profile.setEmailAlertsEnabled(req.getEmailAlertsEnabled());
+        }
+        profile.setConsentUpdatedAt(LocalDateTime.now());
+        DonorProfile updated = (DonorProfile)this.donorRepo.save(profile);
+        log.info("Notification preferences updated: userId={}, sms={}, email={}", userId, profile.isSmsAlertsEnabled(), profile.isEmailAlertsEnabled());
+        return this.donorMapper.toResponse(updated, null);
+    }
+
+    @Override
+    @Transactional
     @CacheEvict(value={"donorSearch"}, allEntries=true)
     public String toggleAvailability(Long userId) {
         DonorProfile profile = this.findProfileByUserId(userId);

@@ -18,6 +18,7 @@ public class MailProperties {
     private String templatePrefix = "email/";
     private int maxRetryAttempts = 3;
     private int retryDelayMs = 1000;
+    private String replyTo;
 
     public String getFromName() {
         return this.fromName;
@@ -25,6 +26,10 @@ public class MailProperties {
 
     public String getFromAddress() {
         return this.fromAddress;
+    }
+
+    public String getReplyTo() {
+        return this.replyTo;
     }
 
     public String getTemplatePrefix() {
@@ -47,6 +52,10 @@ public class MailProperties {
         this.fromAddress = fromAddress;
     }
 
+    public void setReplyTo(String replyTo) {
+        this.replyTo = replyTo;
+    }
+
     public void setTemplatePrefix(String templatePrefix) {
         this.templatePrefix = templatePrefix;
     }
@@ -59,4 +68,5 @@ public class MailProperties {
         this.retryDelayMs = retryDelayMs;
     }
 }
+
 

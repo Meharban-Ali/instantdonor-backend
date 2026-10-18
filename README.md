@@ -52,13 +52,17 @@
 | `AI_SERVICE_URL` | No | `http://ai-service:8000` | Base URL of the Python AI matching microservice. |
 | `FRONTEND_URL` | Yes | `http://localhost:3000` | Client origin URL for reset-password links and CORS. |
 | `CORS_ALLOWED_ORIGINS`| No | `http://localhost:3000` | Comma-separated list of permitted CORS origins. |
-| `MAIL_HOST` | Optional | `smtp.gmail.com` | SMTP relay server host. |
-| `MAIL_PORT` | Optional | `587` | SMTP relay port (TLS). |
-| `MAIL_USERNAME` | Optional | *None* | SMTP username / email address. |
+| `MAIL_HOST` | Optional | `smtp.gmail.com` | SMTP relay server host (or Mailpit for local testing). |
+| `MAIL_PORT` | Optional | `587` | SMTP relay port (587 TLS / 1025 Mailpit). |
+| `MAIL_USERNAME` | Optional | *None* | SMTP username / email address (leave empty when unauthenticated). |
 | `MAIL_PASSWORD` | Optional | *None* | SMTP application-specific password. |
+| `MAIL_REPLY_TO` | Optional | *None* | Optional reply-to address set on outgoing transactional emails. |
 | `TWILIO_ACCOUNT_SID` | Optional | *None* | Twilio Account SID for emergency SMS alerts. |
 | `TWILIO_AUTH_TOKEN` | Optional | *None* | Twilio Auth Token for emergency SMS alerts. |
 | `TWILIO_PHONE_NUMBER` | Optional | *None* | Twilio originating phone number (E.164 format). |
+| `TWILIO_MESSAGING_SERVICE_SID` | Optional | *None* | Twilio Messaging Service SID (takes precedence over phone number if present). |
+| `APP_NOTIFICATION_SMS_MAX_PER_DONOR_PER_DAY` | Optional | `3` | Maximum emergency SMS sent to a single donor within 24 hours. |
+| `APP_NOTIFICATION_SMS_GLOBAL_DAILY_CAP` | Optional | `500` | Platform-wide daily cap on emergency SMS dispatches. |
 
 ---
 

@@ -9,12 +9,16 @@ public class TwilioProperties {
     private String accountSid = "";
     private String authToken = "";
     private String phoneNumber = "";
+    private String messagingServiceSid = "";
     private boolean enabled = false;
     private int maxSmsLength = 160;
     private String defaultCountryCode = "+91";
 
     public boolean isConfigured() {
-        return this.enabled && this.accountSid != null && !this.accountSid.isBlank() && this.authToken != null && !this.authToken.isBlank() && this.phoneNumber != null && !this.phoneNumber.isBlank();
+        boolean hasSender = (this.messagingServiceSid != null && !this.messagingServiceSid.isBlank())
+                || (this.phoneNumber != null && !this.phoneNumber.isBlank());
+        return this.enabled && this.accountSid != null && !this.accountSid.isBlank()
+                && this.authToken != null && !this.authToken.isBlank() && hasSender;
     }
 
     public String getAccountSid() {
@@ -27,6 +31,10 @@ public class TwilioProperties {
 
     public String getPhoneNumber() {
         return this.phoneNumber;
+    }
+
+    public String getMessagingServiceSid() {
+        return this.messagingServiceSid;
     }
 
     public boolean isEnabled() {
@@ -53,6 +61,10 @@ public class TwilioProperties {
         this.phoneNumber = phoneNumber;
     }
 
+    public void setMessagingServiceSid(String messagingServiceSid) {
+        this.messagingServiceSid = messagingServiceSid;
+    }
+
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
@@ -65,4 +77,5 @@ public class TwilioProperties {
         this.defaultCountryCode = defaultCountryCode;
     }
 }
+
 

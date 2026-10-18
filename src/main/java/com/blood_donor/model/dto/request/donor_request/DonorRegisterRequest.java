@@ -19,6 +19,9 @@ public class DonorRegisterRequest {
     @PastOrPresent(message="Last donation date cannot be in future")
     private LocalDate lastDonationDate;
 
+    private Boolean smsAlerts = false;
+    private Boolean emailAlerts = false;
+
     public String getCity() {
         return this.location != null ? this.location.getCity() : null;
     }
@@ -47,6 +50,14 @@ public class DonorRegisterRequest {
         return this.lastDonationDate;
     }
 
+    public Boolean getSmsAlerts() {
+        return this.smsAlerts;
+    }
+
+    public Boolean getEmailAlerts() {
+        return this.emailAlerts;
+    }
+
     public void setBloodGroup(BloodGroup bloodGroup) {
         this.bloodGroup = bloodGroup;
     }
@@ -57,6 +68,14 @@ public class DonorRegisterRequest {
 
     public void setLastDonationDate(LocalDate lastDonationDate) {
         this.lastDonationDate = lastDonationDate;
+    }
+
+    public void setSmsAlerts(Boolean smsAlerts) {
+        this.smsAlerts = smsAlerts;
+    }
+
+    public void setEmailAlerts(Boolean emailAlerts) {
+        this.emailAlerts = emailAlerts;
     }
 
     public boolean equals(Object o) {

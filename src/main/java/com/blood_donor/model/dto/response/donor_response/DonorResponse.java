@@ -17,6 +17,9 @@ public class DonorResponse {
     private boolean isAvailable;
     @JsonInclude(value=JsonInclude.Include.NON_NULL)
     private Double distanceKm;
+    private Boolean smsAlertsEnabled;
+    private Boolean emailAlertsEnabled;
+    private LocalDateTime consentUpdatedAt;
     private LocalDateTime createdAt;
 
     public static DonorResponseBuilder builder() {
@@ -49,6 +52,30 @@ public class DonorResponse {
 
     public Double getDistanceKm() {
         return this.distanceKm;
+    }
+
+    public Boolean getSmsAlertsEnabled() {
+        return this.smsAlertsEnabled;
+    }
+
+    public void setSmsAlertsEnabled(Boolean smsAlertsEnabled) {
+        this.smsAlertsEnabled = smsAlertsEnabled;
+    }
+
+    public Boolean getEmailAlertsEnabled() {
+        return this.emailAlertsEnabled;
+    }
+
+    public void setEmailAlertsEnabled(Boolean emailAlertsEnabled) {
+        this.emailAlertsEnabled = emailAlertsEnabled;
+    }
+
+    public LocalDateTime getConsentUpdatedAt() {
+        return this.consentUpdatedAt;
+    }
+
+    public void setConsentUpdatedAt(LocalDateTime consentUpdatedAt) {
+        this.consentUpdatedAt = consentUpdatedAt;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -179,6 +206,20 @@ public class DonorResponse {
         this.createdAt = createdAt;
     }
 
+    public DonorResponse(Long donorId, UserSummary user, BloodInfo blood, LocationInfo location, DonationStats donationStats, boolean isAvailable, Double distanceKm, Boolean smsAlertsEnabled, Boolean emailAlertsEnabled, LocalDateTime consentUpdatedAt, LocalDateTime createdAt) {
+        this.donorId = donorId;
+        this.user = user;
+        this.blood = blood;
+        this.location = location;
+        this.donationStats = donationStats;
+        this.isAvailable = isAvailable;
+        this.distanceKm = distanceKm;
+        this.smsAlertsEnabled = smsAlertsEnabled;
+        this.emailAlertsEnabled = emailAlertsEnabled;
+        this.consentUpdatedAt = consentUpdatedAt;
+        this.createdAt = createdAt;
+    }
+
     public static class DonorResponseBuilder {
         private Long donorId;
         private UserSummary user;
@@ -187,6 +228,9 @@ public class DonorResponse {
         private DonationStats donationStats;
         private boolean isAvailable;
         private Double distanceKm;
+        private Boolean smsAlertsEnabled;
+        private Boolean emailAlertsEnabled;
+        private LocalDateTime consentUpdatedAt;
         private LocalDateTime createdAt;
 
         DonorResponseBuilder() {
@@ -227,17 +271,32 @@ public class DonorResponse {
             return this;
         }
 
+        public DonorResponseBuilder smsAlertsEnabled(Boolean smsAlertsEnabled) {
+            this.smsAlertsEnabled = smsAlertsEnabled;
+            return this;
+        }
+
+        public DonorResponseBuilder emailAlertsEnabled(Boolean emailAlertsEnabled) {
+            this.emailAlertsEnabled = emailAlertsEnabled;
+            return this;
+        }
+
+        public DonorResponseBuilder consentUpdatedAt(LocalDateTime consentUpdatedAt) {
+            this.consentUpdatedAt = consentUpdatedAt;
+            return this;
+        }
+
         public DonorResponseBuilder createdAt(LocalDateTime createdAt) {
             this.createdAt = createdAt;
             return this;
         }
 
         public DonorResponse build() {
-            return new DonorResponse(this.donorId, this.user, this.blood, this.location, this.donationStats, this.isAvailable, this.distanceKm, this.createdAt);
+            return new DonorResponse(this.donorId, this.user, this.blood, this.location, this.donationStats, this.isAvailable, this.distanceKm, this.smsAlertsEnabled, this.emailAlertsEnabled, this.consentUpdatedAt, this.createdAt);
         }
 
         public String toString() {
-            return "DonorResponse.DonorResponseBuilder(donorId=" + this.donorId + ", user=" + this.user + ", blood=" + this.blood + ", location=" + this.location + ", donationStats=" + this.donationStats + ", isAvailable=" + this.isAvailable + ", distanceKm=" + this.distanceKm + ", createdAt=" + this.createdAt + ")";
+            return "DonorResponse.DonorResponseBuilder(donorId=" + this.donorId + ", user=" + this.user + ", blood=" + this.blood + ", location=" + this.location + ", donationStats=" + this.donationStats + ", isAvailable=" + this.isAvailable + ", distanceKm=" + this.distanceKm + ", smsAlertsEnabled=" + this.smsAlertsEnabled + ", emailAlertsEnabled=" + this.emailAlertsEnabled + ", consentUpdatedAt=" + this.consentUpdatedAt + ", createdAt=" + this.createdAt + ")";
         }
     }
 }

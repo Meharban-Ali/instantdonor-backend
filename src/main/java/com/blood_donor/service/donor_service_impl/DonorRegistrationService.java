@@ -32,11 +32,25 @@ implements IDonorRegistrationService {
             throw ApiException.conflict("Donor profile already exists");
         }
         User user = (User)this.userRepo.findById(userId).orElseThrow(() -> ApiException.notFound("User not found"));
-        DonorProfile profile = DonorProfile.builder().user(user).bloodGroup(req.getBloodGroup()).city(req.getLocation().getCity()).state(req.getLocation().getState()).latitude(req.getLocation().getLatitude()).longitude(req.getLocation().getLongitude()).lastDonationDate(req.getLastDonationDate()).nextEligibleDate(req.getLastDonationDate() != null ? req.getLastDonationDate().plusDays(90L) : null).build();
+        boolean smsOptIn = Boolean.TRUE.equals(req.getSmsAlerts());
+        boolean emailOptIn = Boolean.TRUE.equals(req.getEmailAlerts());
+        DonorProfile profile = DonorProfile.builder()
+                .user(user)
+                .bloodGroup(req.getBloodGroup())
+                .city(req.getLocation().getCity())
+                .state(req.getLocation().getState())
+                .latitude(req.getLocation().getLatitude())
+                .longitude(req.getLocation().getLongitude())
+                .lastDonationDate(req.getLastDonationDate())
+                .nextEligibleDate(req.getLastDonationDate() != null ? req.getLastDonationDate().plusDays(90L) : null)
+                .smsAlertsEnabled(smsOptIn)
+                .emailAlertsEnabled(emailOptIn)
+                .consentUpdatedAt(java.time.LocalDateTime.now())
+                .build();
         DonorProfile saved = (DonorProfile)this.donorRepo.save(profile);
         user.addRole(Role.DONOR);
         this.userRepo.save(user);
-        log.info("Donor registered: userId={}, bloodGroup={}, city={}", new Object[]{userId, req.getBloodGroup(), req.getLocation().getCity()});
+        log.info("Donor registered: userId={}, bloodGroup={}, city={}, smsAlerts={}, emailAlerts={}", userId, req.getBloodGroup(), req.getLocation().getCity(), smsOptIn, emailOptIn);
         return this.donorMapper.toResponse(saved, null);
     }
 

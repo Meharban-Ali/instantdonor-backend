@@ -21,6 +21,9 @@ public class EmailMessageBuilder {
         MimeMessage message = this.mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, 3, "UTF-8");
         helper.setFrom(this.mailProperties.getFromAddress(), this.mailProperties.getFromName());
+        if (this.mailProperties.getReplyTo() != null && !this.mailProperties.getReplyTo().isBlank()) {
+            helper.setReplyTo(this.mailProperties.getReplyTo().trim());
+        }
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(htmlContent, true);
@@ -30,6 +33,9 @@ public class EmailMessageBuilder {
     public SimpleMailMessage buildSimpleMessage(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(this.mailProperties.getFromName() + " <" + this.mailProperties.getFromAddress() + ">");
+        if (this.mailProperties.getReplyTo() != null && !this.mailProperties.getReplyTo().isBlank()) {
+            message.setReplyTo(this.mailProperties.getReplyTo().trim());
+        }
         message.setTo(to);
         message.setSubject(subject);
         message.setText(text);

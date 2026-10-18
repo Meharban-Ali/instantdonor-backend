@@ -65,7 +65,20 @@ implements ISmsService {
 
     private CompletableFuture<Boolean> sendWithRetry(String formattedPhone, String preparedMessage, int attemptNumber) {
         try {
-            Message smsMessage = (Message)Message.creator((PhoneNumber)new PhoneNumber(formattedPhone), (PhoneNumber)new PhoneNumber(this.twilioProperties.getPhoneNumber()), (String)preparedMessage).create();
+            Message smsMessage;
+            if (this.twilioProperties.getMessagingServiceSid() != null && !this.twilioProperties.getMessagingServiceSid().isBlank()) {
+                smsMessage = (Message) Message.creator(
+                    new PhoneNumber(formattedPhone),
+                    this.twilioProperties.getMessagingServiceSid().trim(),
+                    preparedMessage
+                ).create();
+            } else {
+                smsMessage = (Message) Message.creator(
+                    new PhoneNumber(formattedPhone),
+                    new PhoneNumber(this.twilioProperties.getPhoneNumber()),
+                    preparedMessage
+                ).create();
+            }
             log.info("SMS sent: to={}, sid={}, attempt={}", com.blood_donor.utils.PiiMasker.maskPhone(formattedPhone), smsMessage.getSid(), attemptNumber + 1);
             if (this.customMetricsService != null) {
                 this.customMetricsService.recordSmsSuccess();

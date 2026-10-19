@@ -17,21 +17,27 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface UserRepository
 extends JpaRepository<User, Long> {
-    public Optional<User> findByEmail(String var1);
+    @Query("SELECT u FROM User u WHERE LOWER(u.email) = LOWER(:email)")
+    public Optional<User> findByEmail(@Param("email") String email);
 
-    public Optional<User> findByEmailIgnoreCase(String var1);
+    @Query("SELECT u FROM User u WHERE LOWER(u.email) = LOWER(:email)")
+    public Optional<User> findByEmailIgnoreCase(@Param("email") String email);
 
     public Optional<User> findByPhone(String var1);
 
-    public boolean existsByEmail(String var1);
+    @Query("SELECT (COUNT(u) > 0) FROM User u WHERE LOWER(u.email) = LOWER(:email)")
+    public boolean existsByEmail(@Param("email") String email);
 
-    public boolean existsByEmailIgnoreCase(String var1);
+    @Query("SELECT (COUNT(u) > 0) FROM User u WHERE LOWER(u.email) = LOWER(:email)")
+    public boolean existsByEmailIgnoreCase(@Param("email") String email);
 
     public boolean existsByPhone(String var1);
 
-    public Optional<User> findByEmailAndIsActiveTrue(String var1);
+    @Query("SELECT u FROM User u WHERE LOWER(u.email) = LOWER(:email) AND u.isActive = true")
+    public Optional<User> findByEmailAndIsActiveTrue(@Param("email") String email);
 
-    public boolean existsByEmailAndIdNot(String var1, Long var2);
+    @Query("SELECT (COUNT(u) > 0) FROM User u WHERE LOWER(u.email) = LOWER(:email) AND u.id != :id")
+    public boolean existsByEmailAndIdNot(@Param("email") String email, @Param("id") Long id);
 
     public List<User> findByIdIn(List<Long> ids);
 

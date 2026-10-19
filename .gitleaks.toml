@@ -1,13 +1,22 @@
-title = "Backend Gitleaks Configuration"
+# Gitleaks configuration
+title = "Blood Donor Network Backend Gitleaks Config"
 
 [extend]
 useDefault = true
 
 [allowlist]
-description = "Ignore untracked local env, build output, and local test certs"
+description = "Global allowlist for benign test fixtures and documentation"
 paths = [
-    '''\.env.*''',
-    '''target/.*''',
-    '''nginx/certs/.*''',
-    '''\.git/.*''',
+  '''^\.env\.example$''',
+  '''^src/test/resources/.*''',
+  '''^target/.*''',
+  '''^HELP\.md$'''
+]
+
+stopwords = [
+  "testpass",
+  "secret",
+  "testuser",
+  "test-ai-key",
+  "placeholder"
 ]

@@ -31,6 +31,12 @@ public class RealDatabaseSanityTest extends BaseIntegrationTest {
                 Integer.class
         );
         assertThat(donorIndexCount).isGreaterThan(0);
+
+        Integer donorV4IndexCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM pg_indexes WHERE schemaname = 'public' AND tablename = 'donor_profiles' AND indexname = 'idx_donor_lower_city_group_avail'",
+                Integer.class
+        );
+        assertThat(donorV4IndexCount).isGreaterThan(0);
     }
 
     @Test

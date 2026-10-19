@@ -36,7 +36,7 @@ public class SecurityUtils {
         String email = extractEmailFromAuth(authentication);
 
         return userRepository
-                .findByEmail(email)
+                .findByEmailIgnoreCase(email)
                 .orElseThrow(() -> ApiException.notFound(
                         "User not found: " + email
                 ))

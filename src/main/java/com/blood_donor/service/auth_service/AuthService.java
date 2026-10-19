@@ -111,7 +111,7 @@ public class AuthService {
             this.clearFailedLogins(effectiveIp, normalizedEmail);
         }
 
-        User user = this.userRepository.findByEmail(request.getEmail()).orElseThrow(() -> ApiException.notFound("User not found"));
+        User user = this.userRepository.findByEmailIgnoreCase(normalizedEmail).orElseThrow(() -> ApiException.notFound("User not found"));
         if (!user.getIsActive().booleanValue()) {
             throw ApiException.forbidden("Account is deactivated");
         }
@@ -268,7 +268,7 @@ public class AuthService {
             if (email == null || !this.jwtTokenProvider.validateToken(refreshToken, email)) {
                 throw ApiException.unauthorized("Invalid or expired refresh token");
             }
-            User user = this.userRepository.findByEmail(email).orElseThrow(() -> ApiException.notFound("User not found"));
+            User user = this.userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> ApiException.notFound("User not found"));
             if (!user.getIsActive().booleanValue()) {
                 throw ApiException.forbidden("Account is deactivated");
             }

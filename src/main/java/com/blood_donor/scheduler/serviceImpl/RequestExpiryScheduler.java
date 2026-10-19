@@ -12,7 +12,7 @@ public class RequestExpiryScheduler {
     private static final Logger log = LoggerFactory.getLogger(RequestExpiryScheduler.class);
     private final ISchedulerService schedulerService;
 
-    @Scheduled(fixedDelay=300000L)
+    @Scheduled(fixedDelayString="${app.scheduler.expiry-interval-ms:300000}")
     @CacheEvict(value={"activeRequests"}, allEntries=true)
     public void expireOldRequests() {
         log.debug("Request expiry scheduler triggered");

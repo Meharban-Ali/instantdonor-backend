@@ -57,9 +57,10 @@ implements IBloodRequestQueryService {
         int safeSize = Math.min(Math.max(1, size), 50);
         PageRequest pageable = PageRequest.of((int)safePage, (int)safeSize, (Sort)Sort.by((String[])new String[]{"urgency"}).descending().and(Sort.by((String[])new String[]{"createdAt"}).descending()));
         boolean hasCity = city != null && !city.isBlank();
+        String safeCity = hasCity ? com.blood_donor.utils.SqlUtils.escapeLikeWildcards(city.trim()) : null;
         boolean bl = hasGroup = bloodGroup != null;
-        Page<BloodRequest> requests = hasCity && hasGroup ? this.requestRepo.findByStatusInAndCityIgnoreCaseAndBloodGroup(ACTIVE_STATUSES, city.trim(), bloodGroup, (Pageable)pageable) : (hasCity ? this.requestRepo.findByStatusInAndCityIgnoreCase(ACTIVE_STATUSES, city.trim(), (Pageable)pageable) : (hasGroup ? this.requestRepo.findByStatusInAndBloodGroup(ACTIVE_STATUSES, bloodGroup, (Pageable)pageable) : this.requestRepo.findByStatusInOrderByCreatedAtDesc(ACTIVE_STATUSES, (Pageable)pageable)));
-        log.info("Search: city={}, bloodGroup={}, page={}, found={}", new Object[]{city, bloodGroup, safePage, requests.getTotalElements()});
+        Page<BloodRequest> requests = hasCity && hasGroup ? this.requestRepo.findByStatusInAndCityIgnoreCaseAndBloodGroup(ACTIVE_STATUSES, safeCity, bloodGroup, (Pageable)pageable) : (hasCity ? this.requestRepo.findByStatusInAndCityIgnoreCase(ACTIVE_STATUSES, safeCity, (Pageable)pageable) : (hasGroup ? this.requestRepo.findByStatusInAndBloodGroup(ACTIVE_STATUSES, bloodGroup, (Pageable)pageable) : this.requestRepo.findByStatusInOrderByCreatedAtDesc(ACTIVE_STATUSES, (Pageable)pageable)));
+        log.info("Search: city={}, bloodGroup={}, page={}, found={}", new Object[]{safeCity, bloodGroup, safePage, requests.getTotalElements()});
         return this.requestMapper.toResponsePage(requests);
     }
 

@@ -36,8 +36,9 @@ implements IDonorSearchService {
         }
         List<BloodGroup> compatibleGroups = BloodGroup.getCompatibleDonors(req.getBloodGroup());
         PageRequest pageable = PageRequest.of((int)req.getPage(), (int)req.getSize(), (Sort)Sort.by((String[])new String[]{"reliabilityScore"}).descending());
-        Page<DonorProfile> donors = this.donorRepo.findByBloodGroupInAndCityIgnoreCaseAndIsAvailableTrue(compatibleGroups, req.getCity(), (Pageable)pageable);
-        log.info("City search: city={}, bloodGroup={}, found={}", new Object[]{req.getCity(), req.getBloodGroup(), donors.getTotalElements()});
+        String safeCity = com.blood_donor.utils.SqlUtils.escapeLikeWildcards(req.getCity() != null ? req.getCity().trim() : "");
+        Page<DonorProfile> donors = this.donorRepo.findByBloodGroupInAndCityIgnoreCaseAndIsAvailableTrue(compatibleGroups, safeCity, (Pageable)pageable);
+        log.info("City search: city={}, bloodGroup={}, found={}", new Object[]{safeCity, req.getBloodGroup(), donors.getTotalElements()});
         return donors.map(donor -> this.donorMapper.toResponse((DonorProfile)donor, null, true));
     }
 

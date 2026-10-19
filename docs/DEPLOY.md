@@ -1,5 +1,5 @@
 # Cloud Deployment Guide: Blood Donor Network
-**Target Stack**: Vercel (Frontend) + Render (Spring Boot Backend & FastAPI AI Service) + External MySQL 8 (TLS) + Managed Redis (TLS)
+**Target Stack**: Vercel (Frontend Vite React SPA) + Render (Spring Boot 4.1.1 Backend & FastAPI AI Service) + Neon Serverless PostgreSQL 16 (PgBouncer Pooled + TLS) + Render Key Value (Redis 7)
 
 ---
 
@@ -21,23 +21,24 @@
                       ┌──────────────────────────────────────────┐
                       │             Render Web Service           │
                       │     https://api.instantdonor.online      │
-                      │     (Spring Boot 3 / Java 21 Docker)     │
+                      │     (Spring Boot 4.1.1 / Java 21)        │
                       └───────┬──────────────────────────┬───────┘
                               │                          │
-        Internal HTTP + X-API-KEY                        │ JDBC TLS
+        Internal HTTP + X-API-KEY                        │ JDBC TLS (sslmode=require)
                               ▼                          ▼
                ┌────────────────────────┐      ┌────────────────────────┐
-               │   Render Web Service   │      │    External MySQL 8    │
-               │   FastAPI AI Service   │      │    (Aiven / TiDB)      │
-               │   (Python 3.11 Docker) │      │   TLS / Flyway Managed │
+               │   Render Web Service   │      │  Neon PostgreSQL 16    │
+               │   FastAPI AI Service   │      │  (Serverless Pooled    │
+               │   (Python 3.11 Docker) │      │   PgBouncer Endpoint)  │
                └──────────────┬─────────┘      └────────────────────────┘
                               │                          ▲
-                              │ Lettuce SSL              │ PyMySQL TLS
+                              │ AsyncPG / Psycopg2       │
+                              │ Read-Only (ai_service_ro)│
                               ▼                          │
                ┌────────────────────────┐                │
-               │   Render Key Value /   │                │
-               │      Upstash Redis     │────────────────┘
-               │  (Token Blacklist/TTL) │
+               │   Render Key Value     │────────────────┘
+               │  (Redis 7 Token Black- │
+               │   list & Rate Limit)   │
                └────────────────────────┘
 ```
 
@@ -101,7 +102,7 @@
 1. In the Render Dashboard, select **New +** > **Web Service**.
 2. Connect your Git repository (`ai-service` repository).
 3. Select **Docker** environment and **Free** instance type.
-4. Set **Health Check Path** to `/health`.
+4. Set **Health Check Path** to `/live` (lightweight, avoids waking DB on health polls).
 5. Configure Environment Variables (see Section 4 Table).
 6. Note the deployed public URL (e.g. `https://blood-donor-ai-service.onrender.com`).
 
@@ -109,7 +110,7 @@
 1. In the Render Dashboard, select **New +** > **Web Service**.
 2. Connect your Git repository (`Backend` repository).
 3. Select **Docker** environment and **Free** instance type (512MB RAM).
-4. **Health Check Path**: `/actuator/health`.
+4. **Health Check Path**: `/actuator/health/liveness` (lightweight liveness group: ping + diskSpace).
 5. **JVM Memory Optimization Flags** (already baked into `Dockerfile`):
    ```
    JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=55.0 -XX:InitialRAMPercentage=40.0 -Xss512k -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:+ExitOnOutOfMemoryError"
@@ -147,12 +148,14 @@
 | `DB_USERNAME` | Yes | Neon Role | `app_user` (or `neondb_owner`) |
 | `DB_PASSWORD` | Yes | Neon Role | Database user password |
 | `DB_POOL_MAX` | Optional | Performance Tuning | Max Hikari connections (default `10`) |
-| `DB_POOL_MIN_IDLE` | Optional | Performance Tuning | Min idle connections (default `2`) |
+| `DB_POOL_MIN_IDLE` | Optional | Performance Tuning | Min idle connections (default `0` for Neon scale-to-zero) |
 | `REDIS_HOST` | Yes* | Redis Provider | Redis hostname (e.g. `red-xxxx.render.com`) |
 | `REDIS_PORT` | Yes* | Redis Provider | Redis port (`6379`) |
 | `REDIS_PASSWORD` | Optional | Redis Provider | Redis password (omit if Render internal Redis) |
 | `REDIS_SSL` | Yes | Redis Provider | `false` for Render internal (`redis://`), `true` for external/Upstash (`rediss://`) |
 | `REDIS_URL` | Optional | Redis Provider | Full URI format (`redis://...` internal or `rediss://...` external) |
+| `ADMIN_EMAIL` | Yes* | App Config | Required in production when ADMIN_PASSWORD is set |
+| `ADMIN_PASSWORD` | Optional | App Config | Default admin account password |
 | `JWT_SECRET` | Yes | User Generated | Cryptographically secure string, min 48 chars (`openssl rand -hex 32`) |
 | `JWT_EXPIRATION` | Optional | App Config | Access token validity in ms (`86400000` = 24h) |
 | `JWT_REFRESH_EXPIRATION` | Optional | App Config | Refresh token validity in ms (`604800000` = 7d) |
@@ -198,6 +201,30 @@
 
 ## 5. Cold-Start & Free Tier Operational Notes
 
-1. **Inactivity Sleep**: Render free instances spin down after 15 minutes of inactivity. Initial request wake-up requires 30–50 seconds.
-2. **AI Service Resilience**: If the AI service is cold or sleeping when a blood request is created, the Backend's `AiDonorMatchingStrategy` retries 3 times before seamlessly falling back to direct database city-compatible donor matching (`findByCityFallback`). The emergency notification workflow never drops requests.
-3. **Keep-Alive (Optional)**: For critical demo presentations, a free ping tool (e.g. UptimeRobot or cron job) can ping `/actuator/health` and `/health` every 10 minutes to prevent container sleep.
+### A. Cold Start Timing by Component
+| Service / Component | Typical Cold Start Time | Inactivity Sleep Trigger |
+| :--- | :--- | :--- |
+| **Backend (Spring Boot 4.1.1)** | 25–35 seconds | 15 minutes inactivity on Render free tier |
+| **Neon PostgreSQL 16** | 1–3 seconds | 5 minutes inactivity (Serverless compute scale-to-zero) |
+| **AI Service (FastAPI)** | 3–5 seconds | 15 minutes inactivity on Render free tier |
+| **Render Key Value (Redis 7)** | Always warm | Dedicated managed instance |
+
+### B. Mitigation Strategies Implemented
+1. **Frontend Cold-Start Module (`coldStartRetry.ts` & `ColdStartBanner.tsx`)**:
+   - Automatically intercepts idempotent `GET` API requests on network dropouts or HTTP `502`/`503`/`504`.
+   - Executes up to 3 automatic retries with exponential backoff (2s, 4s, 8s).
+   - If a request takes > 5 seconds, surfaces a friendly, non-blocking notification banner: *"Server is waking up (free hosting tier), this may take 30–60 seconds. Please wait..."*.
+   - Decoupled from existing auth token refresh mechanisms to guarantee zero side-effects.
+
+2. **Neon Scale-to-Zero Connection Preservation**:
+   - HikariCP pool tuned with `minimum-idle=0`, `idle-timeout=300000ms`, `keepalive-time=0ms`, and `max-lifetime=1800000ms`. Connections gracefully drain when idle so Neon compute can scale down to zero without holding open TCP sockets.
+   - `prepareThreshold=0` prevents prepared statement caching conflicts across PgBouncer transaction pooling.
+
+3. **Lightweight Health Check Probes**:
+   - Backend configured with `healthCheckPath: /actuator/health/liveness` (checks only `ping` and `diskSpace`), ensuring Render's routine health probes never artificially prevent Neon or Redis from idling.
+   - AI Service configured with `healthCheckPath: /live` (lightweight process health check).
+
+4. **AI Matching Fallback & Fault Tolerance**:
+   - If the AI service is cold or offline when a blood request is dispatched, Backend's `AiDonorMatchingStrategy` retries 3 times before automatically falling back to deterministic rule-based database matching.
+   - Tracks fallback frequency via Micrometer counter metric `ai.matching.fallback`.
+   - Emergency notification workflows never fail or drop requests due to external service latency.

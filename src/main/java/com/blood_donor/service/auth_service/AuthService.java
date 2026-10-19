@@ -61,13 +61,14 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (this.userRepository.existsByEmail(request.getEmail())) {
+        String normalizedEmail = (request.getEmail() != null) ? request.getEmail().trim().toLowerCase(java.util.Locale.ROOT) : "";
+        if (this.userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
             throw ApiException.conflict("Email already registered");
         }
         if (request.getPhone() != null && this.userRepository.existsByPhone(request.getPhone())) {
             throw ApiException.conflict("Phone already registered");
         }
-        User user = User.builder().name(request.getName()).email(request.getEmail()).password(this.passwordEncoder.encode((CharSequence)request.getPassword())).phone(request.getPhone()).roles(new HashSet<Role>(Set.of(Role.USER))).build();
+        User user = User.builder().name(request.getName()).email(normalizedEmail).password(this.passwordEncoder.encode((CharSequence)request.getPassword())).phone(request.getPhone()).roles(new HashSet<Role>(Set.of(Role.USER))).build();
         User savedUser = (User)this.userRepository.save(user);
         log.info("New user registered: {} with roles {}", com.blood_donor.utils.PiiMasker.maskEmail(savedUser.getEmail()), savedUser.getRoles());
         return this.buildAuthResponse(savedUser);
@@ -80,7 +81,7 @@ public class AuthService {
 
     @Transactional(readOnly=true)
     public AuthResponse login(LoginRequest request, String clientIp) {
-        String normalizedEmail = (request.getEmail() != null) ? request.getEmail().trim().toLowerCase() : "";
+        String normalizedEmail = (request.getEmail() != null) ? request.getEmail().trim().toLowerCase(java.util.Locale.ROOT) : "";
         String effectiveIp = (clientIp != null && !clientIp.isBlank()) ? clientIp.trim() : "127.0.0.1";
 
         if (!normalizedEmail.isEmpty()) {
@@ -95,7 +96,7 @@ public class AuthService {
         }
 
         try {
-            this.authenticationManager.authenticate((Authentication)new UsernamePasswordAuthenticationToken((Object)request.getEmail(), (Object)request.getPassword()));
+            this.authenticationManager.authenticate((Authentication)new UsernamePasswordAuthenticationToken((Object)normalizedEmail, (Object)request.getPassword()));
         } catch (org.springframework.security.authentication.BadCredentialsException e) {
             if (this.customMetricsService != null) {
                 this.customMetricsService.recordAuthFailure();
@@ -220,13 +221,14 @@ public class AuthService {
 
     @Transactional
     public void sendResetPasswordEmail(String email) {
-        this.userRepository.findByEmail(email).ifPresent(user -> {
+        String normalizedEmail = (email != null) ? email.trim().toLowerCase(java.util.Locale.ROOT) : "";
+        this.userRepository.findByEmailIgnoreCase(normalizedEmail).ifPresent(user -> {
             this.tokenRepository.deleteAllByUserId(user.getId());
             String token = UUID.randomUUID().toString();
             PasswordResetToken resetToken = PasswordResetToken.builder().token(token).user((User)user).expiresAt(LocalDateTime.now().plusMinutes(this.resetTokenExpiryMinutes)).used(false).build();
             this.tokenRepository.save(resetToken);
             this.notificationService.sendPasswordResetEmail(user.getEmail(), user.getName(), token);
-            log.info("Password reset token generated for user: {}", (Object)email);
+            log.info("Password reset token generated for user: {}", (Object)normalizedEmail);
         });
     }
 

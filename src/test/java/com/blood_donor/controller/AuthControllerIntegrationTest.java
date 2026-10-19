@@ -409,4 +409,52 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.success").value(false));
     }
+
+    @Test
+    @DisplayName("Email Case Sensitivity: Register Test@X.com, login test@x.com (200), conflict TEST@x.com (409)")
+    void shouldHandleEmailCaseInsensitiveRegistrationAndLogin() throws Exception {
+        String baseEmail = "CaseTest" + System.nanoTime();
+        String mixedEmail = baseEmail + "@CaseDomain.COM";
+        String lowerEmail = mixedEmail.toLowerCase(java.util.Locale.ROOT);
+        String upperEmail = mixedEmail.toUpperCase(java.util.Locale.ROOT);
+
+        // 1. Register with MixedCase email
+        RegisterRequest regReq = new RegisterRequest();
+        regReq.setName("Case Insensitive User");
+        regReq.setEmail(mixedEmail);
+        regReq.setPassword("Password@123");
+        regReq.setPhone(String.format(java.util.Locale.ROOT, "98%08d", Math.abs(System.nanoTime() % 100000000L)));
+
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(regReq)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.email").value(lowerEmail));
+
+        // 2. Login with lowercase email
+        LoginRequest loginReqLower = new LoginRequest();
+        loginReqLower.setEmail(lowerEmail);
+        loginReqLower.setPassword("Password@123");
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginReqLower)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.email").value(lowerEmail));
+
+        // 3. Register with UPPERCASE email -> 409 Conflict
+        RegisterRequest regReqUpper = new RegisterRequest();
+        regReqUpper.setName("Duplicate Case User");
+        regReqUpper.setEmail(upperEmail);
+        regReqUpper.setPassword("Password@123");
+        regReqUpper.setPhone(String.format(java.util.Locale.ROOT, "99%08d", Math.abs(System.nanoTime() % 100000000L)));
+
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(regReqUpper)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.success").value(false));
+    }
 }

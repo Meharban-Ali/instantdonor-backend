@@ -33,13 +33,14 @@ implements IAdminInitializerService {
             log.warn("\u26a0\ufe0f ADMIN_PASSWORD not configured. Skipping default admin initialization for security. Set ADMIN_PASSWORD environment variable to initialize admin account.");
             return;
         }
-        if (this.userRepository.existsByEmail(this.adminProperties.getEmail())) {
-            log.info("\u2139\ufe0f  Admin already exists: {}", (Object)this.adminProperties.getEmail());
+        String adminEmail = (this.adminProperties.getEmail() != null) ? this.adminProperties.getEmail().trim().toLowerCase(java.util.Locale.ROOT) : "";
+        if (this.userRepository.existsByEmailIgnoreCase(adminEmail)) {
+            log.info("\u2139\ufe0f  Admin already exists: {}", (Object)adminEmail);
             return;
         }
-        User admin = User.builder().name(this.adminProperties.getName()).email(this.adminProperties.getEmail()).password(this.passwordEncoder.encode((CharSequence)password)).phone(this.adminProperties.getPhone()).roles(new HashSet<Role>(Set.of(Role.USER, Role.ADMIN))).build();
+        User admin = User.builder().name(this.adminProperties.getName()).email(adminEmail).password(this.passwordEncoder.encode((CharSequence)password)).phone(this.adminProperties.getPhone()).roles(new HashSet<Role>(Set.of(Role.USER, Role.ADMIN))).build();
         this.userRepository.save(admin);
-        log.info("\u2705 Default admin created: {}", (Object)this.adminProperties.getEmail());
+        log.info("\u2705 Default admin created: {}", (Object)adminEmail);
         log.info("\u2705 Admin roles: {}", admin.getRoles());
     }
 

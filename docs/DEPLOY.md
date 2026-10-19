@@ -74,7 +74,8 @@
   - `MAIL_PORT=2587`
   - `MAIL_USERNAME=resend`
   - `MAIL_PASSWORD=re_your_resend_api_key`
-  - `MAIL_FROM=noreply@instantdonor.online`
+  - `MAIL_FROM_ADDRESS=noreply@instantdonor.online`
+  - `MAIL_FROM_NAME="AI Blood Donor Network"`
 
 ---
 
@@ -146,7 +147,8 @@
 | `MAIL_PORT` | Optional | Resend | `2587` (bypasses Render free SMTP block) |
 | `MAIL_USERNAME` | Optional | Resend | `resend` |
 | `MAIL_PASSWORD` | Optional | Resend | Resend API Key (`re_...`) |
-| `MAIL_FROM` | Optional | Resend | `noreply@instantdonor.online` |
+| `MAIL_FROM_ADDRESS` | Optional | App Config | `noreply@instantdonor.online` |
+| `MAIL_FROM_NAME` | Optional | App Config | `AI Blood Donor Network` |
 | `MAIL_REPLY_TO` | Optional | App Config | `support@instantdonor.online` |
 | `TWILIO_ACCOUNT_SID` | Optional | Twilio | Twilio Account SID |
 | `TWILIO_AUTH_TOKEN` | Optional | Twilio | Twilio Auth Token |

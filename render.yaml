@@ -54,12 +54,20 @@ services:
         value: resend
       - key: MAIL_PASSWORD
         sync: false
-      - key: MAIL_FROM
+      - key: MAIL_FROM_ADDRESS
         sync: false
       - key: MAIL_FROM_NAME
         value: "AI Blood Donor Network"
       - key: MAIL_REPLY_TO
         sync: false
+      - key: FLYWAY_DB_URL
+        sync: false
+      - key: ADMIN_EMAIL
+        value: "admin@blooddonor.com"
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_NAME
+        value: "Platform Administrator"
       - key: TWILIO_ACCOUNT_SID
         sync: false
       - key: TWILIO_AUTH_TOKEN

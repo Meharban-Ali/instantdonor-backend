@@ -35,7 +35,7 @@ COPY --from=builder --chown=appuser:appgroup /workspace/target/*.jar app.jar
 USER appuser
 
 # Container-aware JVM optimization flags tuned for 512MB RAM constraints (Render free tier)
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=55.0 -XX:InitialRAMPercentage=40.0 -Xss512k -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/app/logs/heapdump.hprof"
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=55.0 -XX:InitialRAMPercentage=40.0 -Xss512k -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:+ExitOnOutOfMemoryError"
 ENV SPRING_PROFILES_ACTIVE=prod
 ENV SERVER_PORT=8080
 

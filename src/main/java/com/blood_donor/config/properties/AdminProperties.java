@@ -13,9 +13,7 @@ import org.springframework.validation.annotation.Validated;
 public class AdminProperties {
     @NotBlank(message="Admin name is required")
     private @NotBlank(message="Admin name is required") String name = "Super Admin";
-    @NotBlank(message="Admin email is required")
-    @Email(message="Admin email must be valid")
-    private @NotBlank(message="Admin email is required") @Email(message="Admin email must be valid") String email = "admin@blooddonor.com";
+    private String email = "";
     @NotBlank(message="Admin phone is required")
     @Pattern(regexp="^[+]?[0-9]{10,15}$", message="Invalid admin phone number")
     private @NotBlank(message="Admin phone is required") @Pattern(regexp="^[+]?[0-9]{10,15}$", message="Invalid admin phone number") String phone = "9999999999";

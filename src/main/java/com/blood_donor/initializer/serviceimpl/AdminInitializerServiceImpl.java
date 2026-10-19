@@ -34,6 +34,10 @@ implements IAdminInitializerService {
             return;
         }
         String adminEmail = (this.adminProperties.getEmail() != null) ? this.adminProperties.getEmail().trim().toLowerCase(java.util.Locale.ROOT) : "";
+        if (!StringUtils.hasText(adminEmail)) {
+            log.warn("\u26a0\ufe0f ADMIN_EMAIL not configured. Skipping default admin initialization.");
+            return;
+        }
         if (this.userRepository.existsByEmailIgnoreCase(adminEmail)) {
             log.info("\u2139\ufe0f  Admin already exists: {}", (Object)adminEmail);
             return;

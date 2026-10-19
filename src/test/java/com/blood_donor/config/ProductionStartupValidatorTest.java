@@ -96,4 +96,51 @@ class ProductionStartupValidatorTest {
 
         assertDoesNotThrow(() -> validator.run(new DefaultApplicationArguments()));
     }
+
+    @Test
+    @DisplayName("Prod profile: Startup fails if ADMIN_PASSWORD is set but ADMIN_EMAIL is missing or blank")
+    void testProd_FailsWhenAdminPasswordSetWithoutEmail() {
+        MockEnvironment env = new MockEnvironment();
+        env.setActiveProfiles("prod");
+        env.setProperty("spring.datasource.url", "jdbc:postgresql://localhost:5432/db");
+        env.setProperty("spring.datasource.username", "root");
+        env.setProperty("spring.datasource.password", "secret");
+        env.setProperty("spring.data.redis.host", "localhost");
+        env.setProperty("spring.data.redis.port", "6379");
+        env.setProperty("jwt.secret", "ThisIsAVeryLongSecureJwtSecretKeyWithAtLeast32BytesLength!");
+        env.setProperty("app.ai-service.api-key", "a_very_secure_random_production_api_key_32_chars_long");
+        env.setProperty("app.admin.password", "SomeSuperSecureAdminPass123!");
+        // app.admin.email is not set or blank
+
+        ProductionStartupValidator validator = new ProductionStartupValidator(env);
+        org.springframework.test.util.ReflectionTestUtils.setField(
+                validator, "jwtSecret", "ThisIsAVeryLongSecureJwtSecretKeyWithAtLeast32BytesLength!"
+        );
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> validator.run(new DefaultApplicationArguments()));
+        assertTrue(ex.getMessage().contains("ADMIN_EMAIL is required in production when ADMIN_PASSWORD is configured"));
+    }
+
+    @Test
+    @DisplayName("Prod profile: Startup succeeds if ADMIN_PASSWORD is set and ADMIN_EMAIL is provided")
+    void testProd_SucceedsWhenAdminPasswordAndEmailAreBothProvided() {
+        MockEnvironment env = new MockEnvironment();
+        env.setActiveProfiles("prod");
+        env.setProperty("spring.datasource.url", "jdbc:postgresql://localhost:5432/db");
+        env.setProperty("spring.datasource.username", "root");
+        env.setProperty("spring.datasource.password", "secret");
+        env.setProperty("spring.data.redis.host", "localhost");
+        env.setProperty("spring.data.redis.port", "6379");
+        env.setProperty("jwt.secret", "ThisIsAVeryLongSecureJwtSecretKeyWithAtLeast32BytesLength!");
+        env.setProperty("app.ai-service.api-key", "a_very_secure_random_production_api_key_32_chars_long");
+        env.setProperty("app.admin.password", "SomeSuperSecureAdminPass123!");
+        env.setProperty("app.admin.email", "admin@domain.com");
+
+        ProductionStartupValidator validator = new ProductionStartupValidator(env);
+        org.springframework.test.util.ReflectionTestUtils.setField(
+                validator, "jwtSecret", "ThisIsAVeryLongSecureJwtSecretKeyWithAtLeast32BytesLength!"
+        );
+
+        assertDoesNotThrow(() -> validator.run(new DefaultApplicationArguments()));
+    }
 }

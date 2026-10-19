@@ -72,6 +72,14 @@ public class ProductionStartupValidator implements ApplicationRunner {
                 }
             }
 
+            String adminPassword = this.environment.getProperty("app.admin.password");
+            if (adminPassword != null && !adminPassword.isBlank()) {
+                String adminEmail = this.environment.getProperty("app.admin.email");
+                if (adminEmail == null || adminEmail.isBlank() || adminEmail.contains("${ADMIN_EMAIL}")) {
+                    throw new IllegalStateException("FATAL STARTUP ERROR: ADMIN_EMAIL is required in production when ADMIN_PASSWORD is configured.");
+                }
+            }
+
             if (!missingVars.isEmpty()) {
                 throw new IllegalStateException(
                         "FATAL STARTUP ERROR: Missing required production environment variables / configuration properties: "

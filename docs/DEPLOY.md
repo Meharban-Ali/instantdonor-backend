@@ -45,26 +45,42 @@
 
 ## 2. Infrastructure Requirements & Pre-Deployment Checklist
 
-### A. External MySQL 8 Database
-- **Recommended Free Providers**: Aiven for MySQL (free plan) or TiDB Cloud Serverless.
+### A. Neon Serverless PostgreSQL 16 Database
+- **Provider**: Neon (https://neon.tech) — Serverless Postgres with automatic scale-to-zero.
 - **Connection Requirements**:
-  - Must support TLSv1.2 or TLSv1.3.
-  - Connection URL Format:
-    ```
-    jdbc:mysql://<host>:<port>/<dbname>?useSSL=true&requireSSL=true&verifyServerCertificate=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    ```
+  - Requires TLSv1.3 (`sslmode=require`).
+  - **Connection URL Formats**:
+    - **Backend Runtime (Pooled via PgBouncer)**:
+      ```
+      jdbc:postgresql://<ep-xxxx>-pooler.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require&prepareThreshold=0
+      ```
+      *Note on `prepareThreshold=0`*: Mandatory when connecting through Neon's PgBouncer pooled endpoint in transaction mode. Disables server-side named prepared statement caching which causes `prepared statement does not exist` errors across connection pooling.
+    - **Flyway Migrations (Direct Endpoint)**:
+      ```
+      FLYWAY_DB_URL=jdbc:postgresql://<ep-xxxx>.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require
+      ```
+      *Direct endpoint* must be used for DDL migrations (`V1`, `V2`, `V3`) to execute transactional DDL without PgBouncer statement interception.
+    - **AI Service Driver URL (Read-Only)**:
+      ```
+      DB_URL=postgresql+psycopg2://ai_service_ro:<password>@<ep-xxxx>-pooler.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require
+      ```
   - **Hikari Connection Pool Constraints**:
-    Free database tiers strictly limit concurrent connections (e.g., 20 max). Configure Backend with:
-    `DB_POOL_MAX=10` and `DB_POOL_MIN_IDLE=2`.
-  - **Schema Migration**:
-    Flyway automatically executes all migrations (`V1`, `V2`, `V3`) on startup. Ensure the database user has `CREATE TABLE`, `ALTER TABLE`, `INDEX`, `INSERT`, `UPDATE`, `DELETE`, and `SELECT` privileges.
+    Configure Backend with `DB_POOL_MAX=10` and `DB_POOL_MIN_IDLE=2` to avoid exhausting Neon pooled connections during scale-to-zero wakeups.
+  - **Least Privilege Roles Initialization (`scripts/neon_roles.sql`)**:
+    Run `scripts/neon_roles.sql` as superuser (`postgres` or `neondb_owner`) prior to application start.
+    - `app_user`: Dedicated application role with DML (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) on operational tables.
+    - `ai_service_ro`: Strict read-only service role with column-level grants on donor availability and location data; explicitly denied access to user passwords, phones, and email PII.
 
-### B. Redis Instance
-- **Recommended Providers**: Render Key Value, Upstash Redis, or Aiven for Redis.
-- **Connection Requirements**:
-  - TLS/SSL enabled: `REDIS_SSL=true` or connection URI starting with `rediss://`.
-  - Used for rate-limiting, authentication lockout, and JWT token revocation blacklist.
-  - *Note on Resilience*: `JwtAuthFilter` enforces a fail-closed policy for token blacklisting with a 3000ms timeout. If Redis is unreachable, authenticated requests fail with HTTP 503.
+### B. Redis Instance (Render Key Value vs Managed Redis)
+- **Render Key Value (Internal vs External Connection)**:
+  - **Same Render Region / Internal Service**:
+    - Use Render Internal Redis URL: `redis://red-xxxx:6379`.
+    - No password and NO TLS (`REDIS_SSL=false`).
+  - **Cross-Region or External Clients**:
+    - Use Render External Redis URL: `rediss://default:<password>@oregon-keyvalue.render.com:6379`.
+    - TLS enabled (`REDIS_SSL=true`).
+- **Resilience Policy**:
+  - `JwtAuthFilter` enforces a fail-closed policy with a 3000ms Redis timeout. If Redis is unreachable, authenticated requests safely fail with HTTP 503 rather than accepting unverified tokens.
 
 ### C. Email Service (Resend SMTP)
 - **Render Free Tier Restriction**: Render blocks outbound connections on standard SMTP ports `25`, `465`, and `587` on free web services to prevent spam.
@@ -126,16 +142,17 @@
 | :--- | :---: | :--- | :--- |
 | `SPRING_PROFILES_ACTIVE` | Yes | App Config | Must be `prod` |
 | `PORT` | Auto | Render | Automatically assigned by Render (e.g. `10000`) |
-| `DB_URL` | Yes | MySQL Provider | `jdbc:mysql://host:port/dbname?useSSL=true&requireSSL=true&verifyServerCertificate=true` |
-| `DB_USERNAME` | Yes | MySQL Provider | Database user name |
-| `DB_PASSWORD` | Yes | MySQL Provider | Database user password |
+| `DB_URL` | Yes | Neon Postgres | `jdbc:postgresql://<ep-xxxx>-pooler.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require&prepareThreshold=0` |
+| `FLYWAY_DB_URL` | Optional | Neon Direct | `jdbc:postgresql://<ep-xxxx>.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require` (for direct DDL migrations) |
+| `DB_USERNAME` | Yes | Neon Role | `app_user` (or `neondb_owner`) |
+| `DB_PASSWORD` | Yes | Neon Role | Database user password |
 | `DB_POOL_MAX` | Optional | Performance Tuning | Max Hikari connections (default `10`) |
 | `DB_POOL_MIN_IDLE` | Optional | Performance Tuning | Min idle connections (default `2`) |
 | `REDIS_HOST` | Yes* | Redis Provider | Redis hostname (e.g. `red-xxxx.render.com`) |
 | `REDIS_PORT` | Yes* | Redis Provider | Redis port (`6379`) |
-| `REDIS_PASSWORD` | Optional | Redis Provider | Redis password |
-| `REDIS_SSL` | Yes | Redis Provider | `true` for cloud providers requiring TLS |
-| `REDIS_URL` | Optional | Redis Provider | Full URI format (`rediss://default:pass@host:port`) |
+| `REDIS_PASSWORD` | Optional | Redis Provider | Redis password (omit if Render internal Redis) |
+| `REDIS_SSL` | Yes | Redis Provider | `false` for Render internal (`redis://`), `true` for external/Upstash (`rediss://`) |
+| `REDIS_URL` | Optional | Redis Provider | Full URI format (`redis://...` internal or `rediss://...` external) |
 | `JWT_SECRET` | Yes | User Generated | Cryptographically secure string, min 48 chars (`openssl rand -hex 32`) |
 | `JWT_EXPIRATION` | Optional | App Config | Access token validity in ms (`86400000` = 24h) |
 | `JWT_REFRESH_EXPIRATION` | Optional | App Config | Refresh token validity in ms (`604800000` = 7d) |
@@ -163,13 +180,12 @@
 | `DEBUG` | Yes | App Config | Must be `false` (enforced at startup) |
 | `PORT` | Auto | Render | Automatically assigned by Render |
 | `API_KEY` | Yes | User Generated | Secret key for `X-API-KEY` verification (matches Backend) |
-| `JWT_SECRET` | Yes | User Generated | Secret key matching Backend JWT secret |
-| `DB_URL` | Yes | MySQL Provider | `mysql+pymysql://user:pass@host:port/dbname?ssl_ca=...` |
+| `DB_URL` | Yes | Neon Postgres | `postgresql+psycopg2://ai_service_ro:pass@host:5432/neondb?sslmode=require` |
 | `DB_POOL_SIZE` | Optional | App Config | Default `5` |
 | `REDIS_HOST` | Yes | Redis Provider | Redis hostname |
 | `REDIS_PORT` | Yes | Redis Provider | Redis port (`6379`) |
 | `REDIS_PASSWORD` | Optional | Redis Provider | Redis auth password |
-| `REDIS_SSL` | Yes | Redis Provider | `true` |
+| `REDIS_SSL` | Yes | Redis Provider | `false` for Render internal, `true` for external/Upstash |
 | `CORS_ORIGINS` | Optional | App Config | Empty or `["https://api.instantdonor.online"]` |
 
 ### Service 3: Frontend (`instantdonor.online`)

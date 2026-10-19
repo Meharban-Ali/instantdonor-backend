@@ -83,6 +83,7 @@ public class TrustedProxyAndRateLimitSpoofingTest {
         rateLimitingFilter.doFilterInternal(req4, res4, filterChain);
 
         assertThat(res4.getStatus()).isEqualTo(429);
+        assertThat(res4.getHeader("Retry-After")).isEqualTo("60");
         assertThat(res4.getContentAsString()).contains("Too many requests");
         verify(customMetricsService).recordRateLimit429();
     }

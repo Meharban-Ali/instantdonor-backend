@@ -102,6 +102,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
                 if (this.customMetricsService != null) {
                     this.customMetricsService.recordRateLimit429();
                 }
+                response.setHeader("Retry-After", String.valueOf(this.refillIntervalSeconds));
                 SecurityResponseHelper.writeError(response, 429, "Too many requests. Please try again later.");
                 return;
             }

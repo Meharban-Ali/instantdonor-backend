@@ -12,7 +12,17 @@ application.properties
 *.key
 *.p12
 *.jks
+*.pfx
+certs/
 nginx/certs/
+secrets/
+
+# ── LOGS & DUMPS ─────────────────────────────
+logs/
+*.log
+*.hprof
+*.dump
+*.sql.gz
 
 # ── JAVA / MAVEN ─────────────────────────────
 target/
@@ -65,9 +75,15 @@ htmlcov/
 logs/
 *.log
 
-# ── UPLOADS & SCREENSHOTS ─────────────────────
+# ── UPLOADS & SCREENSHOTS & TEST REPORTS ───────
 uploads/
 screenshots/
+e2e-screenshots/
+test-results/
+playwright-report/
+coverage/
+.coverage
+htmlcov/
 *.png
 *.pdf
 *.docx

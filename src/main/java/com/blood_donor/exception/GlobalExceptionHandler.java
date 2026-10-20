@@ -107,10 +107,12 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.failure("Required request body is missing or malformed"));
     }
 
-    // Resource not found (e.g. missing static resource or disabled swagger) — 404 Not Found
-    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
-    public ResponseEntity<ApiResponse<?>> handleNoResourceFound(
-            org.springframework.web.servlet.resource.NoResourceFoundException exp) {
+    // Resource or unmapped route not found (e.g. missing static resource, unknown endpoint, or disabled swagger) — 404 Not Found
+    @ExceptionHandler({
+            org.springframework.web.servlet.resource.NoResourceFoundException.class,
+            org.springframework.web.servlet.NoHandlerFoundException.class
+    })
+    public ResponseEntity<ApiResponse<?>> handleResourceOrRouteNotFound(Exception exp) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.failure("Resource not found"));

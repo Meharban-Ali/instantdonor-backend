@@ -6,7 +6,7 @@
 -- Using placeholder hash for local dev/testing
 INSERT INTO users (id, name, email, password, phone, is_active, created_at, updated_at)
 VALUES 
-  (1001, 'System Administrator', 'admin@blooddonor.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '9999900001', true, NOW(), NOW()),
+  (1001, 'System Administrator', 'admin_demo@blooddonor.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '9999900001', true, NOW(), NOW()),
   (1002, 'Rohan Sharma', 'rohan.donor@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '9999900002', true, NOW(), NOW()),
   (1003, 'Priya Patel', 'priya.donor@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '9999900003', true, NOW(), NOW()),
   (1004, 'Amit Verma', 'amit.donor@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '9999900004', true, NOW(), NOW()),

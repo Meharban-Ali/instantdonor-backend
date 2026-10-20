@@ -17,7 +17,7 @@ Write-Host "================================================================"
 Write-Host "`n[1/3] Running Backend Integration & Security Tests..."
 Push-Location (Join-Path $PSScriptRoot "..")
 try {
-    & "D:\Meharban-code\apache-maven-3.9.16\bin\mvn.cmd" test "-Dtest=AuthControllerIntegrationTest,RealDatabasePhase3HardeningTest,AiSerializationRoundTripTest"
+    mvn test "-Dtest=AuthControllerIntegrationTest,RealDatabasePhase3HardeningTest,AiSerializationRoundTripTest"
     Write-Host "Backend tests: PASSED" -ForegroundColor Green
 } finally {
     Pop-Location

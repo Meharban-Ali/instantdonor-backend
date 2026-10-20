@@ -15,7 +15,7 @@ If you discover a potential security vulnerability within this repository, pleas
 
 Instead, please report security vulnerabilities responsibly:
 
-1. **Email:** Send details to `security@blooddonor.com` or `meharbanali7900@gmail.com`.
+1. **Reporting Method:** Please use GitHub Private Vulnerability Reporting on this repository. Do not open public issues for security vulnerabilities.
 2. **Details to include:**
    - Nature of the vulnerability (e.g. authentication bypass, SQL injection, IDOR, data exposure).
    - Step-by-step reproduction instructions or proof-of-concept payload.

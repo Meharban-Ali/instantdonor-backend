@@ -107,6 +107,15 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.failure("Required request body is missing or malformed"));
     }
 
+    // Resource not found (e.g. missing static resource or disabled swagger) — 404 Not Found
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleNoResourceFound(
+            org.springframework.web.servlet.resource.NoResourceFoundException exp) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.failure("Resource not found"));
+    }
+
     // Catch-all — 500 Internal Server Error (Zero stack trace leak)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleGenericsException(Exception exp) {

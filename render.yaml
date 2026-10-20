@@ -30,7 +30,7 @@ services:
         sync: false
       - key: REDIS_SSL
         value: "true"
-      - key: REDIS_URL
+      - key: SPRING_DATA_REDIS_URL
         fromConnectionString:
           type: keyvalue
           name: blood-donor-redis

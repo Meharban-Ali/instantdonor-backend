@@ -21,8 +21,9 @@ RUN groupadd -r -g 10001 appgroup && \
 WORKDIR /app
 RUN mkdir -p /app/logs && chown -R appuser:appgroup /app
 
-# Install curl for container health check
+# Install curl for container health check and upgrade packages to fix OS CVEs (libssl3)
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && apt-get upgrade -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy application jar from builder stage

@@ -31,6 +31,10 @@ implements IBloodRequestCreationService {
     private final SecurityUtils securityUtils;
     private final BloodRequestMapper requestMapper;
     private final RequestExpiryProperties expiryProperties;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.blood_donor.repository.donor_repository.response_repository.DonorRequestResponseRepository responseRepo;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.blood_donor.repository.donor_profile_repo.DonorProfileRepository donorRepo;
     @Value(value="${app.request.expiry-hours-normal:48}")
     private int expiryHoursNormal;
     @Value(value="${app.request.expiry-hours-urgent:24}")
@@ -94,6 +98,21 @@ implements IBloodRequestCreationService {
         request.setStatus(BloodRequestStatus.FULFILLED);
         request.setFulfilledAt(LocalDateTime.now());
         BloodRequest saved = (BloodRequest)this.requestRepo.save(request);
+
+        if (this.responseRepo != null && this.donorRepo != null) {
+            java.util.List<com.blood_donor.model.entity.DonorRequestResponse> accepted =
+                    this.responseRepo.findByRequestIdAndStatus(requestId, com.blood_donor.model.dto.response.donor_response.status.ResponseStatus.ACCEPTED);
+            for (com.blood_donor.model.entity.DonorRequestResponse resp : accepted) {
+                com.blood_donor.model.entity.DonorProfile donor = resp.getDonor();
+                if (donor != null) {
+                    donor.recordDonation();
+                    this.donorRepo.save(donor);
+                    log.info("Recorded donation on manual fulfill: donorId={}, totalDonations={}, nextEligibleDate={}",
+                            donor.getId(), donor.getTotalDonations(), donor.getNextEligibleDate());
+                }
+            }
+        }
+
         log.info("Request manually marked FULFILLED: id={}", (Object)requestId);
         return this.requestMapper.toResponse(saved);
     }

@@ -86,6 +86,18 @@ implements IBloodRequestResponseService {
             this.requestRepo.updateStatus(request.getId(), BloodRequestStatus.FULFILLED, LocalDateTime.now());
             request.setStatus(BloodRequestStatus.FULFILLED);
             request.setFulfilledAt(LocalDateTime.now());
+
+            java.util.List<DonorRequestResponse> accepted = this.responseRepo.findByRequestIdAndStatus(request.getId(), ResponseStatus.ACCEPTED);
+            for (DonorRequestResponse resp : accepted) {
+                DonorProfile donor = resp.getDonor();
+                if (donor != null) {
+                    donor.recordDonation();
+                    this.donorRepo.save(donor);
+                    log.info("Recorded donation on auto fulfill: donorId={}, totalDonations={}, nextEligibleDate={}",
+                            donor.getId(), donor.getTotalDonations(), donor.getNextEligibleDate());
+                }
+            }
+
             log.info("Request FULFILLED: id={}, acceptedDonors={}", (Object)request.getId(), (Object)acceptedCount);
         } else {
             this.requestRepo.updateStatus(request.getId(), BloodRequestStatus.MATCHING, LocalDateTime.now());

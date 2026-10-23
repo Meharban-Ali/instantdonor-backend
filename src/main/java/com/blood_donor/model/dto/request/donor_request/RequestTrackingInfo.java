@@ -25,7 +25,13 @@ public class RequestTrackingInfo {
         return this.fulfillmentPercentage;
     }
 
+    @com.fasterxml.jackson.annotation.JsonProperty("isFulfilled")
     public boolean isFulfilled() {
+        return this.isFulfilled;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("fulfilled")
+    public boolean getFulfilled() {
         return this.isFulfilled;
     }
 

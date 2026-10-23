@@ -34,6 +34,9 @@ extends JpaRepository<DonorRequestResponse, Long> {
     @Query(value="SELECT COUNT(drr)\nFROM DonorRequestResponse drr\nWHERE drr.request.id = :requestId\n  AND drr.status = :status\n")
     public long countByRequestIdAndStatus(@Param(value="requestId") Long var1, @Param(value="status") ResponseStatus var2);
 
+    @Query(value="SELECT drr\nFROM DonorRequestResponse drr\nWHERE drr.request.id = :requestId\n  AND drr.status = :status\n")
+    public List<DonorRequestResponse> findByRequestIdAndStatus(@Param(value="requestId") Long var1, @Param(value="status") ResponseStatus var2);
+
     @Modifying
     @Transactional
     @Query(value="UPDATE DonorRequestResponse drr\nSET drr.status      = :status,\n    drr.respondedAt = :respondedAt,\n    drr.notes       = :notes\nWHERE drr.donor.id   = :donorId\n  AND drr.request.id = :requestId\n")

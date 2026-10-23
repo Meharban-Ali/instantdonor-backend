@@ -161,9 +161,12 @@ public class AuthController {
     @PreAuthorize(value="isAuthenticated()")
     @SecurityRequirement(name="bearerAuth")
     @Operation(summary="Change password for logged-in user")
-    public ResponseEntity<ApiResponse<String>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+    public ResponseEntity<ApiResponse<String>> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            @RequestHeader(value="Authorization", required=false) String authHeader) {
         Long userId = this.securityUtils.getCurrentUserId();
-        this.authService.changePassword(userId, request.getCurrentPassword(), request.getNewPassword());
+        String accessToken = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        this.authService.changePassword(userId, request.getCurrentPassword(), request.getNewPassword(), accessToken);
         return ResponseEntity.ok(ApiResponse.success("Password changed successfully", "CHANGED"));
     }
 

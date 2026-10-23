@@ -77,6 +77,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
             try {
                 String email = jwtTokenProvider.extractEmail(token);
+                if (redisTemplate != null && email != null) {
+                    try {
+                        Object invalidBeforeObj = redisTemplate.opsForValue().get("user:tokens_invalid_before:" + email);
+                        if (invalidBeforeObj != null) {
+                            long invalidBefore = Long.parseLong(invalidBeforeObj.toString());
+                            java.util.Date issuedAt = jwtTokenProvider.extractClaim(token, io.jsonwebtoken.Claims::getIssuedAt);
+                            if (issuedAt != null && issuedAt.getTime() < invalidBefore) {
+                                log.warn("Attempted request with token issued before password change for {}", email);
+                                SecurityResponseHelper.writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Token has been revoked due to password change");
+                                return;
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.warn("Redis tokens_invalid_before check failed: {}", e.getMessage());
+                    }
+                }
                 //Only Authenticate if not already authenticate
                 if(email !=null && SecurityContextHolder.getContext().getAuthentication()==null){
                     UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);

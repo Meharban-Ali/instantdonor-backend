@@ -249,6 +249,11 @@ public class AuthService {
 
     @Transactional
     public void changePassword(Long userId, String currentPassword, String newPassword) {
+        changePassword(userId, currentPassword, newPassword, null);
+    }
+
+    @Transactional
+    public void changePassword(Long userId, String currentPassword, String newPassword, String currentAccessToken) {
         User user = (User)this.userRepository.findById(userId).orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
         if (!this.passwordEncoder.matches((CharSequence)currentPassword, user.getPassword())) {
             throw new ApiException("Current password is incorrect", HttpStatus.BAD_REQUEST);
@@ -256,6 +261,43 @@ public class AuthService {
         user.setPassword(this.passwordEncoder.encode((CharSequence)newPassword));
         this.userRepository.save(user);
         log.info("Password changed: userId={}", (Object)userId);
+
+        if (this.redisTemplate != null) {
+            try {
+                // 1. Invalidate all existing tokens issued before this instant
+                long invalidationTimestamp = System.currentTimeMillis();
+                this.redisTemplate.opsForValue().set("user:tokens_invalid_before:" + user.getEmail(), String.valueOf(invalidationTimestamp), 7, TimeUnit.DAYS);
+
+                // 2. Blacklist all tracked refresh tokens for this user
+                String refreshSetKey = "user:refresh_tokens:" + userId;
+                Set<Object> activeRefreshTokens = this.redisTemplate.opsForSet().members(refreshSetKey);
+                if (activeRefreshTokens != null) {
+                    for (Object tokenObj : activeRefreshTokens) {
+                        if (tokenObj != null) {
+                            String tokenStr = tokenObj.toString();
+                            this.redisTemplate.opsForValue().set("blacklist:token:" + tokenStr, "true", 7, TimeUnit.DAYS);
+                        }
+                    }
+                }
+                this.redisTemplate.delete(refreshSetKey);
+
+                // 3. Blacklist caller's current access token if provided
+                if (currentAccessToken != null && !currentAccessToken.isBlank()) {
+                    try {
+                        Date expirationDate = this.jwtTokenProvider.extractClaim(currentAccessToken, Claims::getExpiration);
+                        long remainingMs = expirationDate.getTime() - System.currentTimeMillis();
+                        if (remainingMs > 0L) {
+                            this.redisTemplate.opsForValue().set("blacklist:token:" + currentAccessToken, "true", remainingMs, TimeUnit.MILLISECONDS);
+                            log.info("Current access token blacklisted on password change");
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to blacklist access token on password change: {}", e.getMessage());
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to complete token revocation on password change for userId={}: {}", userId, e.getMessage());
+            }
+        }
     }
 
     @Transactional(readOnly=true)
@@ -267,6 +309,22 @@ public class AuthService {
             String email = this.jwtTokenProvider.extractEmail(refreshToken);
             if (email == null || !this.jwtTokenProvider.validateToken(refreshToken, email)) {
                 throw ApiException.unauthorized("Invalid or expired refresh token");
+            }
+            if (this.redisTemplate != null) {
+                try {
+                    Object invalidBeforeObj = this.redisTemplate.opsForValue().get("user:tokens_invalid_before:" + email);
+                    if (invalidBeforeObj != null) {
+                        long invalidBefore = Long.parseLong(invalidBeforeObj.toString());
+                        Date issuedAt = this.jwtTokenProvider.extractClaim(refreshToken, Claims::getIssuedAt);
+                        if (issuedAt != null && issuedAt.getTime() < invalidBefore) {
+                            throw ApiException.unauthorized("Refresh token has been revoked due to password change");
+                        }
+                    }
+                } catch (ApiException e) {
+                    throw e;
+                } catch (Exception e) {
+                    log.warn("Failed checking tokens_invalid_before for refresh token: {}", e.getMessage());
+                }
             }
             User user = this.userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> ApiException.notFound("User not found"));
             if (!user.getIsActive().booleanValue()) {
@@ -385,6 +443,15 @@ public class AuthService {
     private AuthResponse buildAuthResponse(User user) {
         String accessToken = this.jwtTokenProvider.generateAccessToken(user.getEmail(), user.getRoles(), user.getId());
         String refreshToken = this.jwtTokenProvider.generateRefreshToken(user.getEmail());
+        if (this.redisTemplate != null) {
+            try {
+                String refreshSetKey = "user:refresh_tokens:" + user.getId();
+                this.redisTemplate.opsForSet().add(refreshSetKey, refreshToken);
+                this.redisTemplate.expire(refreshSetKey, 7, TimeUnit.DAYS);
+            } catch (Exception e) {
+                log.warn("Failed to track refresh token in Redis for userId={}: {}", user.getId(), e.getMessage());
+            }
+        }
         return AuthResponse.builder().accessToken(accessToken).refreshToken(refreshToken).tokenType("Bearer").userId(user.getId()).name(user.getName()).email(user.getEmail()).roles(user.getRoles()).expiresIn(3600L).build();
     }
 

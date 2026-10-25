@@ -46,7 +46,7 @@
         <springdoc.version>3.1.1</springdoc.version>
         <twilio.version>10.1.0</twilio.version>
         <modelmapper.version>3.2.0</modelmapper.version>
-        <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
         <testcontainers.version>1.20.4</testcontainers.version>
         <lombok.version>1.18.32</lombok.version>
         <spring-retry.version>2.0.13</spring-retry.version>

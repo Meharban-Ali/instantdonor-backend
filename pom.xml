@@ -59,7 +59,7 @@
         <flyway.maven.plugin.version>10.10.0</flyway.maven.plugin.version>
 
         <!-- Security Patched Overrides -->
-        <tomcat.version>11.0.26</tomcat.version>
+        <tomcat.version>11.0.27</tomcat.version>
         <jackson-2-bom.version>2.21.6</jackson-2-bom.version>
     </properties>
 

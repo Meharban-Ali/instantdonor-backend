@@ -7,6 +7,7 @@ public class RequestTrackingInfo {
     private Long notifiedDonors;
     private Long acceptedDonors;
     private Double fulfillmentPercentage;
+    @com.fasterxml.jackson.annotation.JsonProperty("isFulfilled")
     private boolean isFulfilled;
 
     public static RequestTrackingInfoBuilder builder() {
@@ -47,6 +48,7 @@ public class RequestTrackingInfo {
         this.fulfillmentPercentage = fulfillmentPercentage;
     }
 
+    @com.fasterxml.jackson.annotation.JsonProperty("isFulfilled")
     public void setFulfilled(boolean isFulfilled) {
         this.isFulfilled = isFulfilled;
     }

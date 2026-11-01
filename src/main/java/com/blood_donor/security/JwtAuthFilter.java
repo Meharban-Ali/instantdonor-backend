@@ -29,6 +29,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService customUserDetailsService;
     private org.springframework.data.redis.core.RedisTemplate<String, Object> redisTemplate;
 
+    @org.springframework.beans.factory.annotation.Value("${app.security.token-blacklist.fail-closed:true}")
+    private boolean failClosed = true;
+
     @org.springframework.beans.factory.annotation.Autowired
     public JwtAuthFilter(
             JwtTokenProvider jwtTokenProvider,
@@ -70,9 +73,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         return;
                     }
                 } catch (Exception e) {
-                    log.error("Redis token blacklist check failed, fail-closed policy enforced: {}", e.getMessage());
-                    SecurityResponseHelper.writeError(response, HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Authentication service temporarily unavailable (blacklist check failure)");
-                    return;
+                    if (failClosed) {
+                        log.error("Redis token blacklist check failed, fail-closed policy enforced: {}", e.getMessage());
+                        SecurityResponseHelper.writeError(response, HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Authentication service temporarily unavailable (blacklist check failure)");
+                        return;
+                    } else {
+                        log.warn("Redis token blacklist check failed, fail-open policy allowed: {}", e.getMessage());
+                    }
                 }
             }
             try {

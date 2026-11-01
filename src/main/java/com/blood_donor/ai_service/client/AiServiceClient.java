@@ -83,7 +83,15 @@ public class AiServiceClient {
         }
     }
 
+    private volatile long lastHealthCheckTime = 0;
+    private volatile boolean lastHealthStatus = false;
+    private static final long HEALTH_CHECK_TTL_MS = 30000;
+
     public boolean isAiServiceHealthy() {
+        long now = System.currentTimeMillis();
+        if (now - lastHealthCheckTime < HEALTH_CHECK_TTL_MS) {
+            return lastHealthStatus;
+        }
         try {
             String url = this.aiProperties.getUrl() + "/health";
             String response = (String)this.restTemplate.getForObject(url, String.class, new Object[0]);

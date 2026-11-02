@@ -29,8 +29,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService customUserDetailsService;
     private org.springframework.data.redis.core.RedisTemplate<String, Object> redisTemplate;
 
-    @org.springframework.beans.factory.annotation.Value("${app.security.token-blacklist.fail-closed:true}")
-    private boolean failClosed = true;
+    @org.springframework.beans.factory.annotation.Value("${app.security.token-blacklist.fail-closed:false}")
+    private boolean failClosed = false;
 
     @org.springframework.beans.factory.annotation.Autowired
     public JwtAuthFilter(

@@ -146,7 +146,15 @@ public class RealRedisCacheAndFailClosedTest extends BaseIntegrationTest {
         org.springframework.data.redis.core.RedisTemplate<String, Object> failingRedis = mock(org.springframework.data.redis.core.RedisTemplate.class);
         when(failingRedis.hasKey(anyString())).thenThrow(new RedisConnectionFailureException("Redis connection refused (simulated outage)"));
 
-        JwtAuthFilter filter = new JwtAuthFilter(jwtTokenProvider, userDetailsService, failingRedis);
+        CustomUserDetailsService mockUserDetailsService = mock(CustomUserDetailsService.class);
+        org.springframework.security.core.userdetails.UserDetails mockDetails =
+                new org.springframework.security.core.userdetails.User(
+                        "cache_donor@test.com", "pass",
+                        Collections.singleton(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_DONOR"))
+                );
+        when(mockUserDetailsService.loadUserByUsername("cache_donor@test.com")).thenReturn(mockDetails);
+
+        JwtAuthFilter filter = new JwtAuthFilter(jwtTokenProvider, mockUserDetailsService, failingRedis);
 
         String testToken = jwtTokenProvider.generateAccessToken("cache_donor@test.com", Collections.singleton(Role.DONOR), 1L);
 

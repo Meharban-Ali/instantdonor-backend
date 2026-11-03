@@ -140,7 +140,7 @@ public class RealRedisCacheAndFailClosedTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Fail-Closed Policy: Redis outage during token blacklist check returns HTTP 503 (Fail-Closed)")
+    @DisplayName("Resilient Auth Policy: Redis outage during token blacklist check allows authenticated request (Fail-Open)")
     void testRedisDownFailClosedBlacklistCheck() throws ServletException, IOException {
         // Create a mocked redisTemplate that simulates Redis connection failure
         org.springframework.data.redis.core.RedisTemplate<String, Object> failingRedis = mock(org.springframework.data.redis.core.RedisTemplate.class);
@@ -160,10 +160,9 @@ public class RealRedisCacheAndFailClosedTest extends BaseIntegrationTest {
         // Execute filter with failed Redis
         filter.doFilter(request, response, filterChain);
 
-        // Verify FAIL-CLOSED: Request is NOT passed through to filter chain; 503 is returned!
-        verify(filterChain, never()).doFilter(any(), any());
-        assertThat(response.getStatus()).isEqualTo(503);
-        assertThat(response.getContentAsString()).contains("Authentication service temporarily unavailable (blacklist check failure)");
+        // Verify FAIL-OPEN: Request is passed through to filter chain without 503 error
+        verify(filterChain, times(1)).doFilter(request, response);
+        assertThat(response.getStatus()).isNotEqualTo(503);
     }
 
     @Test

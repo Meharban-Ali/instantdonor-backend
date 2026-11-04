@@ -116,6 +116,27 @@ class SecurityAccessAndIdorTest {
             mockMvc.perform(get("/api/admin/dashboard"))
                     .andExpect(status().isUnauthorized());
         }
+
+        @Test
+        @DisplayName("ADMIN role accessing /api/admin/dashboard must return 200 OK")
+        void adminAccessingAdminEndpointReturns200() throws Exception {
+            User adminUser = userRepository.save(User.builder()
+                    .name("Super Admin")
+                    .email("admin_test_" + System.nanoTime() + "@test.com")
+                    .password(passwordEncoder.encode("Password@123"))
+                    .phone("9800000003")
+                    .roles(Set.of(Role.ADMIN))
+                    .isActive(true)
+                    .build());
+
+            String adminToken = jwtTokenProvider.generateAccessToken(
+                    adminUser.getEmail(), adminUser.getRoles(), adminUser.getId()
+            );
+
+            mockMvc.perform(get("/api/admin/dashboard")
+                            .header("Authorization", "Bearer " + adminToken))
+                    .andExpect(status().isOk());
+        }
     }
 
     @Nested
